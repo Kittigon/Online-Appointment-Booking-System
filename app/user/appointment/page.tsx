@@ -6,14 +6,15 @@ import { useEffect, useState } from "react";
 const time = ["10:00", "11:00", "13:00", "14:00"];
 
 // ฟังก์ชันสำหรับสร้างวันที่ถัดไป 7 วัน
-const getNext7Weekdays = (): string[] => {
+const getNextWeekdays = (offset: number): string[] => {
     const days: string[] = [];
     let date = new Date();
+    date.setDate(date.getDate() + offset); // เริ่มจาก offset วันถัดไป
 
     while (days.length < 7) {
         const day = date.getDay();
-        if (day !== 0 && day !== 6) { // ไม่เอาอาทิตย์(0) และเสาร์(6)
-            const dateStr = date.toISOString().split('T')[0]; // 'yyyy-mm-dd'
+        if (day !== 0 && day !== 6) {
+            const dateStr = date.toISOString().split('T')[0];
             days.push(dateStr);
         }
         date.setDate(date.getDate() + 1);
@@ -22,17 +23,17 @@ const getNext7Weekdays = (): string[] => {
     return days;
 };
 
-const date = getNext7Weekdays();
+// const date = getNextWeekdays();
 
 // สร้างสถานะเริ่มต้นสำหรับวันที่และเวลา
 // โดยเริ่มต้นให้ทุกวันและเวลาว่าง (true)
 const initStatus: Record<string, Record<string, boolean>> = {};
-date.forEach(date => {
-    initStatus[date] = {};
-    time.forEach(time => {
-        initStatus[date][time] = true;
-    });
-});
+// date.forEach(date => {
+//     initStatus[date] = {};
+//     time.forEach(time => {
+//         initStatus[date][time] = true;
+//     });
+// });
 
 // สำหรับแปลง yyyy-mm-dd → "4 ก.ค. 2025"
 const formatThaiDate = (dateStr: string): string => {
@@ -41,7 +42,16 @@ const formatThaiDate = (dateStr: string): string => {
         day: 'numeric',
         month: 'long',
         year: '2-digit',
-        weekday: 'short'
+        weekday: 'long'
+    });
+};
+
+// สำหรับแปลง yyyy-mm-dd → "เดือน กรกฎาคม 67"
+const formatThaiMonthYear = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('th-TH', {
+        month: 'long',
+        year: '2-digit',
     });
 };
 
@@ -54,7 +64,7 @@ type User = {
 
 
 const UserAppointment = () => {
-    const [status, setStatus] = useState(initStatus);
+    const [status, setStatus] = useState<Record<string, Record<string, boolean>>>({});
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
 
@@ -65,36 +75,51 @@ const UserAppointment = () => {
 
     const [data, setData] = useState<User | null>(null)
 
+    const [offset, setOffset] = useState(0);
+    const [dateList, setDateList] = useState(getNextWeekdays(0));
+
     //โหลดข้อมูลการนัดหมาย
     useEffect(() => {
-        FetchAppoinment();
-        FecthUser();
-    }, [])
+        const newDates = getNextWeekdays(offset);
+        setDateList(newDates);
 
-    const FetchAppoinment = async () => {
-        try {
-            const res = await fetch('/api/appointment');
-            const data = await res.json();
-            // console.log(data)
-
-            const newstatus: typeof initStatus = { ...initStatus };
-
-            data.showAppoinment.forEach((appoint: any) => {
-                if (newstatus[appoint.date]) {
-                    newstatus[appoint.date][appoint.time] = false;
-                }
+        const newStatus: typeof initStatus = {};
+        newDates.forEach(date => {
+            newStatus[date] = {};
+            time.forEach(t => {
+                newStatus[date][t] = true;
             });
+        });
 
-            setStatus(newstatus)
+        const FetchAppoinment = async () => {
+            try {
+                try {
+                    const res = await fetch('/api/appointment');
+                    const data = await res.json();
+                    data.showAppoinment.forEach((appoint: any) => {
+                        if (newStatus[appoint.date]?.[appoint.time] !== undefined) {
+                            newStatus[appoint.date][appoint.time] = false;
+                        }
+                    });
+                    setStatus(newStatus);
+                } catch (err) {
+                    console.log("โหลดนัดหมายล้มเหลว:", err);
+                }
 
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                console.log("Load Appoinment Failed : ", error.message)
-            } else {
-                console.log("Unknow error in Load Appoinment  !", error)
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    console.log("Load Appoinment Failed : ", error.message)
+                } else {
+                    console.log("Unknow error in Load Appoinment  !", error)
+                }
             }
         }
-    }
+
+        FetchAppoinment();
+        FecthUser();
+    }, [offset])
+
+
 
     const FecthUser = async () => {
         try {
@@ -156,7 +181,7 @@ const UserAppointment = () => {
             if (!selectedDate || !selectedTime) return alert("กรุณาเลือกวันและเวลาก่อน");
             if (!name || !code || !phone) return alert("กรุณากรอกข้อมูลให้ครบ");
 
-            const userId = data?.id ;
+            const userId = data?.id;
 
             const payload = {
                 userId,
@@ -206,6 +231,7 @@ const UserAppointment = () => {
         }
     };
 
+    const thaiMonthYear = dateList.length ? formatThaiMonthYear(dateList[0]) : '';
 
     return (
         <>
@@ -216,13 +242,24 @@ const UserAppointment = () => {
 
             {/* กล่องเนื้อหาหลัก */}
             <div className="p-4 md:p-6  mx-auto">
+                <div>
+                    <div>{ }</div>
+                </div>
+
+                {/* ชื่อเดือน */}
+                <div className="flex justify-center items-center mb-4">
+                    <h2 className="font-semibold text-lg text-gray-700">
+                        เดือน {thaiMonthYear}
+                    </h2>
+                </div>
+
                 {/* ตาราง */}
                 <div className="overflow-x-auto">
                     <table className="min-w-[700px] w-full text-center mb-6 border-separate border-spacing-2">
                         <thead>
                             <tr>
                                 <th className="p-3 bg-purple-100 rounded-md whitespace-nowrap">เวลา</th>
-                                {date.map(date => (
+                                {dateList.map(date => (
                                     <th key={date} className="p-3 bg-purple-100 rounded-md whitespace-nowrap">
                                         {formatThaiDate(date)}
                                     </th>
@@ -233,8 +270,8 @@ const UserAppointment = () => {
                             {time.map(time => (
                                 <tr key={time}>
                                     <td className="p-3 font-semibold bg-white rounded-md shadow whitespace-nowrap">{time}</td>
-                                    {date.map(date => {
-                                        const available = status[date][time];
+                                    {dateList.map(date => {
+                                        const available = status[date]?.[time] ?? false;
                                         const isSelected = selectedDate === date && selectedTime === time;
                                         return (
                                             <td
@@ -244,7 +281,7 @@ const UserAppointment = () => {
                                             transition duration-200 whitespace-nowrap
                                             ${available ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
                                             ${isSelected ? 'ring-2 ring-yellow-500' : ''}
-                                        `}
+                                            `}
                                                 onClick={() => available && handleSelect(date, time)}
                                             >
                                                 {available ? 'ว่าง' : 'ไม่ว่าง'}
@@ -257,14 +294,36 @@ const UserAppointment = () => {
                     </table>
                 </div>
 
+                {/* button Nextweek */}
+                <div className="flex justify-between items-center mt-4 max-w-[700px] mx-auto">
+                    <button
+                        onClick={() => setOffset(prev => Math.max(prev - 7, 0))}
+                        className="bg-purple-200 hover:bg-purple-300 text-purple-800 font-medium px-4 py-2 rounded-full"
+                    >
+                        ← ย้อนหลัง
+                    </button>
+                    <span className="text-red-500 text-sm"> *** ต้องการนัดหมายล่วงหน้า 2 ชั่วโมง *** </span>
+                    <button
+                        onClick={() => { if (offset + 7 < 365) setOffset(prev => prev + 7) }}
+
+                        className="bg-purple-200 hover:bg-purple-300 text-purple-800 font-medium px-4 py-2 rounded-full"
+                    >
+                        ถัดไป →
+                    </button>
+                </div>
+
                 {/* ฟอร์มกรอกข้อมูล */}
                 {selectedDate && selectedTime && (
                     <div className="bg-white shadow-md rounded-lg p-4 md:p-6 mt-6">
-                        <h2 className="text-xl font-semibold text-gray-800 mb-4">กรอกข้อมูลการนัดหมาย</h2>
-                        <p className="text-md text-gray-600 mb-4">
+                        <div className="flex items-center justify-between ">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4">กรอกข้อมูลการนัดหมาย</h2>
+                            <span className="text-red-500">***  สถานที่นัดหมาย : อาคารสงวนเสริมศรี  ***</span>
+                        </div>
+
+                        <p className="text-md text-gray-600 my-2">
                             {/* วันที่: <span className="font-medium ">{formatThaiDate(selectedDate)}</span> | เวลา: <span className="font-medium">{selectedTime}</span> */}
                             <input type="text"
-                                value={`วัน: ${formatThaiDate(selectedDate)} | เวลา: ${selectedTime}`}
+                                value={`${formatThaiDate(selectedDate)} | เวลา: ${selectedTime}`}
                                 readOnly
                                 className="w-full p-3 border border-gray-300 rounded-md bg-gray-100 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-4"
                             />

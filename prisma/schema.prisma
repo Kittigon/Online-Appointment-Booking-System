@@ -9,16 +9,17 @@ datasource db {
 }
 
 model users {
-  id           Int            @id @default(autoincrement())
-  email        String         @unique
+  id           Int              @id @default(autoincrement())
+  email        String           @unique
   password     String
   name         String
   age          Int?
   gender       String?
-  role         Role           @default(USER)
-  createdAt    DateTime       @default(now())
-  updateAt     DateTime       @default(now())
+  role         Role             @default(USER)
+  createdAt    DateTime         @default(now())
+  updateAt     DateTime         @default(now())
   appointments appointments[]
+  reports      reportproblems[]
 }
 
 model appointments {
@@ -52,6 +53,24 @@ model documents {
   id        Int                    @id @default(autoincrement())
   content   String?
   embedding Unsupported("vector")?
+}
+
+model reportproblems {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  type        String
+  description String?
+  status      Reportstatus @default(NEW)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+  user        users        @relation(fields: [userId], references: [id])
+}
+
+enum Reportstatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  CANCELLED
 }
 
 enum Role {

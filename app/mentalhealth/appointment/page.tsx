@@ -1,20 +1,39 @@
 'use client';
 import { useState, useEffect } from "react";
+import { Clock } from 'lucide-react'
 
 const time = ["10:00", "11:00", "13:00", "14:00"];
 
-// คืนค่า array วันที่ 7 วันถัดไป
-const getNext7Days = (): string[] => {
+const getDaysInMonth = (offset: number): string[] => {
+    const now = new Date();
+    const target = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    const year = target.getFullYear();
+    const month = target.getMonth();
+
+    const totalDays = new Date(year, month + 1, 0).getDate();
     const days: string[] = [];
-    for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() + i);
-        days.push(date.toISOString().split('T')[0]); // yyyy-mm-dd
+
+    for (let i = 1; i <= totalDays; i++) {
+        const day = new Date(year, month, i);
+
+        // ---- START: เพิ่มส่วนนี้เข้ามา ----
+        const dayOfWeek = day.getDay(); // 0 = Sunday, 6 = Saturday
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            continue; // ข้ามไปวันถัดไปถ้าเป็นเสาร์หรืออาทิตย์
+        }
+        // ---- END: เพิ่มส่วนนี้เข้ามา ----
+
+        // FIX: จัดการรูปแบบวันที่เพื่อหลีกเลี่ยงปัญหา Timezone
+        const yyyy = day.getFullYear();
+        const mm = String(day.getMonth() + 1).padStart(2, '0');
+        const dd = String(day.getDate()).padStart(2, '0');
+
+        days.push(`${yyyy}-${mm}-${dd}`);
     }
+
     return days;
 };
 
-const date = getNext7Days();
 
 type AppointmentInfo = null | {
     name: string;
@@ -26,38 +45,38 @@ type AppointmentInfo = null | {
 type User = {
     id: number;
     email: string;
-    name: string
+    name: string;
     role: "USER" | "MENTALHEALTH" | "ADMIN";
-}
+};
 
-// สร้างตารางว่างเริ่มต้น
-const initStatus: Record<string, Record<string, AppointmentInfo>> = {};
-date.forEach(date => {
-    initStatus[date] = {};
-    time.forEach(time => {
-        initStatus[date][time] = null;
-    });
-});
-
-// แปลงวันที่เป็นภาษาไทย
 const formatThaiDate = (dateStr: string): string => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('th-TH', {
         day: 'numeric',
-        month: 'short',
+        month: 'long',
         year: '2-digit',
-        weekday: 'short'
+        weekday: 'long'
+    });
+};
+
+const formatThaiMonthYear = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('th-TH', {
+        month: 'long',
+        year: '2-digit',
     });
 };
 
 const MentalhealthAppointment = () => {
-    const [status, setStatus] = useState<Record<string, Record<string, AppointmentInfo>>>(initStatus);
+    const [monthOffset, setMonthOffset] = useState(0);
+    const [date, setDate] = useState<string[]>(getDaysInMonth(0));
+    const [status, setStatus] = useState<Record<string, Record<string, AppointmentInfo>>>({});
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [code, setCode] = useState('');
     const [phone, setPhone] = useState('');
     const [name, setName] = useState('');
-    const [description, setDescription] = useState<string>('');
+    const [description, setDescription] = useState('');
     const [selectedBookedInfo, setSelectedBookedInfo] = useState<{
         name: string;
         code: string;
@@ -66,30 +85,43 @@ const MentalhealthAppointment = () => {
         time: string;
         description: string;
     } | null>(null);
-
-    const [data, setData] = useState<User | null>(null)
+    const [data, setData] = useState<User | null>(null);
 
     useEffect(() => {
         FecthUser();
     }, []);
 
     useEffect(() => {
+        const newDate = getDaysInMonth(monthOffset);
+        setDate(newDate);
+
+        const newStatus: Record<string, Record<string, AppointmentInfo>> = {};
+        newDate.forEach(d => {
+            newStatus[d] = {};
+            time.forEach(t => {
+                newStatus[d][t] = null;
+            });
+        });
+
+        setStatus(prev => ({ ...newStatus, ...prev }));
+    }, [monthOffset]);
+
+    useEffect(() => {
         if (data?.id) {
             FetchAppointment();
         }
-    }, [data]);
+    }, [data, date]);
 
     const FetchAppointment = async () => {
         try {
             const res = await fetch('/api/appointment');
             const data = await res.json();
-            console.log(data.showAppoinment)
 
-            const newStatus: typeof initStatus = { ...initStatus };
+            const updatedStatus: typeof status = { ...status };
 
             data.showAppoinment.forEach((appoint: any) => {
-                if (newStatus[appoint.date]) {
-                    newStatus[appoint.date][appoint.time] = {
+                if (updatedStatus[appoint.date] && updatedStatus[appoint.date][appoint.time] === null) {
+                    updatedStatus[appoint.date][appoint.time] = {
                         name: appoint.name,
                         code: appoint.code,
                         phone: appoint.phone,
@@ -98,7 +130,7 @@ const MentalhealthAppointment = () => {
                 }
             });
 
-            setStatus(newStatus);
+            setStatus(updatedStatus);
         } catch (error) {
             console.error("โหลดข้อมูลล้มเหลว:", error);
         }
@@ -112,30 +144,19 @@ const MentalhealthAppointment = () => {
             });
 
             const data = await res.json();
-            // console.log("Data:", data);
-
             if (res.ok) {
                 setData(data.user);
             }
-            // } else {
-            //     console.log("ไม่พบ token หรือ token ไม่ถูกต้อง:", data.message);
-            // }
         } catch (error) {
             console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
         }
-    }
+    };
 
     const handleSelect = (date: string, time: string) => {
-        const booking = status[date][time];
+        const booking = status[date]?.[time];
+
         if (booking) {
-            setSelectedBookedInfo({
-                name: booking.name,
-                code: booking.code,
-                phone: booking.phone,
-                description: booking.description,
-                date,
-                time,
-            });
+            setSelectedBookedInfo({ ...booking, date, time });
             return;
         }
 
@@ -143,6 +164,12 @@ const MentalhealthAppointment = () => {
         const [h, m] = time.split(":").map(Number);
         const selected = new Date(date);
         selected.setHours(h, m, 0, 0);
+
+        const dayOfWeek = selected.getDay(); // 0 = Sunday, 6 = Saturday
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            alert("ไม่สามารถเลือกวันเสาร์-อาทิตย์ได้");
+            return;
+        }
 
         if (selected.getTime() - now.getTime() < 2 * 60 * 60 * 1000) {
             alert("กรุณาเลือกเวลาล่วงหน้าอย่างน้อย 2 ชั่วโมง");
@@ -169,7 +196,7 @@ const MentalhealthAppointment = () => {
                 description,
                 date: selectedDate,
                 time: selectedTime
-            }
+            };
 
             const res = await fetch(`/api/appointment`, {
                 method: "POST",
@@ -177,7 +204,7 @@ const MentalhealthAppointment = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
-            })
+            });
 
             if (res.ok) {
                 setStatus(prev => ({
@@ -192,26 +219,23 @@ const MentalhealthAppointment = () => {
                         }
                     }
                 }));
+                alert(`จองสำเร็จ: ${formatThaiDate(selectedDate)} เวลา ${selectedTime} โดย ${name}`);
+                setSelectedDate("");
+                setSelectedTime("");
+                setName("");
+                setCode("");
+                setPhone("");
+                setDescription("");
             }
-
-            alert(`จองสำเร็จ: ${formatThaiDate(selectedDate)} เวลา ${selectedTime} โดย ${name}`);
-            setSelectedDate("");
-            setSelectedTime("");
-            setName("");
-            setCode("");
-            setPhone("");
-            setDescription("");
 
         } catch (error: unknown) {
             if (error instanceof Error) {
-                if (error instanceof Error) {
-                    console.log("Create Appoinment Failed : ", error.message)
-                } else {
-                    console.log("Unknow error in Load Appoinment : ", error)
-                }
+                console.log("Create Appointment Failed : ", error.message);
             }
         }
     };
+
+    const thaiMonthYear = date.length ? formatThaiMonthYear(date[1]) : '';
 
     return (
         <>
@@ -220,7 +244,26 @@ const MentalhealthAppointment = () => {
             </div>
 
             <div className="p-4 md:p-6 mx-auto">
-                {/* ตาราง */}
+                <div className="flex justify-between items-center mb-4">
+                    <button
+                        onClick={() => setMonthOffset(prev => prev - 1)}
+                        className="bg-purple-200 hover:bg-purple-300 px-4 py-1 rounded-md text-sm font-medium"
+                    >
+                        ← เดือนก่อนหน้า
+                    </button>
+
+                    <h2 className="font-semibold text-lg text-gray-700">
+                        เดือน {thaiMonthYear}
+                    </h2>
+
+                    <button
+                        onClick={() => setMonthOffset(prev => prev + 1)}
+                        className="bg-purple-200 hover:bg-purple-300 px-4 py-1 rounded-md text-sm font-medium"
+                    >
+                        เดือนถัดไป →
+                    </button>
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="min-w-[700px] w-full text-center mb-6 border-separate border-spacing-2">
                         <thead>
@@ -238,7 +281,7 @@ const MentalhealthAppointment = () => {
                                 <tr key={time}>
                                     <td className="p-3 font-semibold bg-white rounded-md shadow">{time}</td>
                                     {date.map(date => {
-                                        const booking = status[date][time];
+                                        const booking = status[date]?.[time];
                                         const isSelected = selectedDate === date && selectedTime === time;
 
                                         return (
@@ -261,10 +304,43 @@ const MentalhealthAppointment = () => {
                     </table>
                 </div>
 
-                {/* ฟอร์มกรอกชื่อ */}
-                {selectedDate && selectedTime && status[selectedDate][selectedTime] === null && (
+                {/* แสดงรายการนัดหมายของวันนี้ */}
+                <div className="mt-6">
+                    <h2 className="text-lg font-semibold text-gray-700 mb-2">การนัดหมายของวันนี้</h2>
+
+                    {(() => {
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const todayAppointments = status[todayStr] || {};
+
+                        const bookedTimes = Object.entries(todayAppointments).filter(([_, info]) => info !== null);
+
+                        if (bookedTimes.length === 0) {
+                            return <p className="text-gray-500">ยังไม่มีการนัดหมายวันนี้</p>;
+                        }
+
+                        return (
+                            <ul className="space-y-2 ">
+                                {bookedTimes.map(([time, info]) => (
+                                    <li key={time} className="bg-purple-50 p-3 rounded-md shadow text-sm text-gray-800 flex items-center gap-2">
+                                        <Clock /> <strong>{time}</strong> - ชื่อ-นามสกุล : {info?.name} เบอร์โทร : ({info?.phone})
+                                    </li>
+                                ))}
+                            </ul>
+                        );
+                    })()}
+                </div>
+
+
+                {/* ฟอร์มจอง */}
+                {selectedDate && selectedTime && status[selectedDate]?.[selectedTime] === null && (
                     <div className="bg-white shadow-md rounded-lg p-4 md:p-6 mt-6">
                         <h2 className="text-xl font-semibold text-gray-800 mb-4">กรอกชื่อผู้รับการปรึกษา</h2>
+                        <input
+                            type="text"
+                            value={`${formatThaiDate(selectedDate)} | เวลา : ${selectedTime}`}
+                            readOnly
+                            className="w-full p-3 border font-bold border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
+                        />
                         <input
                             type="text"
                             placeholder="ชื่อ-นามสกุล"
@@ -291,13 +367,7 @@ const MentalhealthAppointment = () => {
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             rows={3}
-                            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400 col-span-1 md:col-span-2 w-full  mb-4"
-                        />
-                        <input
-                            type="text"
-                            value={`วัน: ${formatThaiDate(selectedDate)} | เวลา: ${selectedTime}`}
-                            readOnly
-                            className="w-full p-3 border border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
+                            className="p-3 border border-gray-300 rounded-md w-full mb-4"
                         />
                         <div className="flex flex-col md:flex-row justify-end gap-4">
                             <button
@@ -330,33 +400,33 @@ const MentalhealthAppointment = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 text-[15px]">
                             <input
                                 type="text"
+                                value={`${formatThaiDate(selectedBookedInfo.date)} | เวลา: ${selectedBookedInfo.time}`}
+                                readOnly
+                                className="w-full p-3 border font-bold border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-2"
+                            />
+                            <input
+                                type="text"
                                 value={`ชื่อ: ${selectedBookedInfo.name}`}
                                 readOnly
-                                className="w-full p-3 border font-semibold border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
+                                className="w-full p-3 border border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
                             />
                             <input
                                 type="text"
                                 value={`รหัส: ${selectedBookedInfo.code}`}
                                 readOnly
-                                className="w-full p-3 border font-semibold border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
+                                className="w-full p-3 border border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
                             />
                             <input
                                 type="text"
                                 value={`เบอร์โทรศัพท์: ${selectedBookedInfo.phone}`}
                                 readOnly
-                                className="w-full p-3 border font-semibold border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
+                                className="w-full p-3 border border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
                             />
                             <textarea
                                 value={`ช่องทางการติดต่อเพิ่มเติม : ${selectedBookedInfo.description}`}
                                 rows={3}
                                 readOnly
-                                className="p-3 border font-semibold border-gray-200 bg-gray-100 text-gray-600 rounded-md rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400 col-span-1 md:col-span-2 w-full  mb-4"
-                            />
-                            <input
-                                type="text"
-                                value={`วัน: ${formatThaiDate(selectedBookedInfo.date)} | เวลา: ${selectedBookedInfo.time}`}
-                                readOnly
-                                className="w-full p-3 border font-semibold border-gray-200 bg-gray-100 text-gray-600 rounded-md mb-4"
+                                className="p-3 border border-gray-200 bg-gray-100 text-gray-600 rounded-md col-span-1 md:col-span-2 w-full mb-4"
                             />
                         </div>
                         <div className="flex justify-end mt-6">

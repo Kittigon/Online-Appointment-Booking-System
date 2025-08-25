@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import type { users } from '@prisma/client';
 import { Pencil } from 'lucide-react';
 import { Trash2 } from 'lucide-react';
-import { id } from 'zod/locales';
+
 
 
 // แปลงวันที่เป็นภาษาไทย
@@ -106,14 +106,11 @@ const AdminManage = () => {
 
     return (
         <>
-            <div className="
-            bg-[#B67CDE] w-[250px] h-10 text-white p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
-                <h1 className="text-xl font-bold  ">จัดการผู้ใช้</h1>
-            </div>
+            <h2 className="text-3xl font-bold text-slate-800 pt-6 pl-6 mt-3 ml-2">จัดการผู้ใช้</h2>
 
             <div className="flex flex-col items-center justify-center mt-10 px-4 w-full">
                 <div className="bg-white w-full  rounded-lg shadow-lg p-5 overflow-x-auto">
-                    <table className="min-w-[600px] w-full text-left">
+                    <table className="min-w-[900px] w-full text-left">
                         <thead>
                             <tr className=" text-gray-700 text-center bg-purple-100">
                                 <th className="border-b-2 border-gray-300 p-2">ID</th>

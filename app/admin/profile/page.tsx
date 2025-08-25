@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -11,15 +11,14 @@ type User = {
     role: "USER" | "MENTALHEALTH" | "ADMIN";
 }
 
-
-export default function EditProfile() {
+const AdminProfile = () => {
     const [formdata, setFormdata] = useState({
-        name: '',
-        email: '',
-        gender: '',
-        age: 0,
-    });
-    const [data, setData] = useState<User | null>(null)
+            name: '',
+            email: '',
+            gender: '',
+            age: 0,
+        });
+        const [data, setData] = useState<User | null>(null)
 
     useEffect(() => {
         FecthUser();
@@ -31,7 +30,6 @@ export default function EditProfile() {
         }
     }, [data])
 
-    // decoded token
     const FecthUser = async () => {
         try {
             const res = await fetch('/api/token', {
@@ -100,13 +98,10 @@ export default function EditProfile() {
             console.log('เกิดข้อผิดพลาดในการแก้ไขข้อมูล : ',error)
         }
     };
-
+    
     return (
         <>
-            <div className="
-            bg-[#B67CDE] w-[250px] h-10 text-white p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
-                <h1 className="text-xl font-bold  ">โปรไฟล์</h1>
-            </div>
+            <h2 className="text-3xl font-bold text-slate-800 pt-6 pl-6 mt-3 ml-2">โปรไฟล์</h2>
             <div className=" flex items-center justify-center px-4 py-10">
                 <div className="bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2">
                     {/* ซ้าย: welcome */}
@@ -182,5 +177,6 @@ export default function EditProfile() {
                 </div>
             </div>
         </>
-    );
+    )
 }
+export default AdminProfile

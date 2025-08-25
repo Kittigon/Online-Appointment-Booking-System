@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
             path: "/", // cookie นี้ใช้ได้กับทุก path
             secure: process.env.NODE_ENV === "production", // ใช้ secure cookie ใน production เท่านั้น
             sameSite: "strict", // ป้องกัน CSRF
-            maxAge: 60 * 60, // 1 hour
+            maxAge:  60 * 60 * 3, // 3 hour
         })
 
         return NextResponse.json({ message: "Login successful" }, {

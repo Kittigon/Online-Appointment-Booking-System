@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { CalendarDays } from 'lucide-react';
 import { Clock } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 type Appoinment = {
     id: number;
@@ -129,11 +130,15 @@ const UserHistory = () => {
                                         <div className="flex flex-col  gap-2">
                                             <div className="text-sm text-gray-800 font-medium break-words flex items-center gap-2">
                                                 <CalendarDays />
-                                                <span className="font-bold">{formatThaiDate(item.date)}</span>
+                                                <span className="font-bold ">{formatThaiDate(item.date)}</span>
                                             </div>
                                             <div className="mt-2 flex items-center gap-2">
                                                 <Clock />
                                                 <span >{item.time}</span>
+                                            </div>
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <MapPin/>
+                                                <span> อาคารสงวนเสริมศรี </span>
                                             </div>
                                         </div>
 

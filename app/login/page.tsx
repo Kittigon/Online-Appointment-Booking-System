@@ -46,6 +46,7 @@ const LoginPage = () => {
                 setEmail('');
                 setPassword('');
 
+
                 // ดึง user จาก token หลัง login สำเร็จ
                 const userRes = await fetch('/api/token', {
                     method: 'GET',

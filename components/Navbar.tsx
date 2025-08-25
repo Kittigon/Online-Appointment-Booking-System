@@ -1,8 +1,8 @@
 'use client'
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect} from 'react'
 import Link from "next/link"
 import Image from "next/image"
-import {  LockKeyholeOpen, Menu } from 'lucide-react'
+import { LockKeyholeOpen, Menu } from 'lucide-react'
 
 type User = {
     id: number;
@@ -75,7 +75,7 @@ const Navbar = () => {
             <div className="bg-[#E6E6E6] px-4 md:px-7 py-4">
                 <nav className="flex justify-between items-center">
                     {/* LOGO */}
-                    <Link href="/" className="flex items-center gap-2">
+                    <button className="flex items-center gap-2">
                         <Image
                             className="rounded-full"
                             src="/ตรามหาลัยพะเยา.png"
@@ -83,15 +83,16 @@ const Navbar = () => {
                             width={40}
                             alt="Logo"
                         />
-
-                    </Link>
+                    </button>
 
                     {/* Mobile Hamburger */}
-                    <div className="md:hidden">
-                        <button onClick={() => setMenuOpen(!menuOpen)}>
-                            <Menu />
-                        </button>
-                    </div>
+                    {data && (data.role === "USER" || data.role === "MENTALHEALTH") && (
+                        <div className="md:hidden">
+                            <button onClick={() => setMenuOpen(!menuOpen)}>
+                                <Menu />
+                            </button>
+                        </div>
+                    )}
 
                     {/* Desktop Menu */}
                     <ul className="hidden md:flex gap-10 text-black items-center">
@@ -109,19 +110,19 @@ const Navbar = () => {
                                 <li><Link href="/mentalhealth/history" className="hover:underline">ประวัติบุคลากร</Link></li>
                             </>
                         )}
-                        {data?.role === "ADMIN" && (
+                        {/* {data?.role === "ADMIN" && (
                             <>
                                 <li><Link href="/admin/dashboard" className="hover:underline">Dashboard</Link></li>
                                 <li><Link href="/admin/manage" className="hover:underline">จัดการผู้ใช้</Link></li>
                             </>
-                        )}
+                        )} */}
 
                         {!data && (
                             <li><Link href="/login"><LockKeyholeOpen /></Link></li>
                         )}
 
                         {/* Dropdown Settings */}
-                        {data && (
+                        {data && (data?.role === "USER" || data?.role === "MENTALHEALTH") && (
                             <li className="relative pt-2">
                                 <button onClick={() => setDropdownOpen(!dropdownOpen)}>
                                     <div className="avatar avatar-placeholder">
@@ -199,7 +200,7 @@ const Navbar = () => {
                                 {mobileDropdownOpen && (
                                     <div className="ml-4 mt-1 space-y-1 text-sm">
                                         <Link href="/profile" className="block hover:underline">โปรไฟล์</Link>
-                                        <Link href="/change-password" className="block hover:underline">เปลี่ยนรหัสผ่าน</Link>
+                                        <Link href="/changepassword" className="block hover:underline">เปลี่ยนรหัสผ่าน</Link>
                                         <button onClick={() => { handleLogout() }} className="block hover:underline text-red-600">ออกจากระบบ</button>
                                     </div>
                                 )}

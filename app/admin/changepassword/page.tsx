@@ -1,5 +1,4 @@
-'use client';
-
+'use client'
 import { useState, useEffect } from 'react';
 
 type User = {
@@ -9,8 +8,7 @@ type User = {
     role: "USER" | "MENTALHEALTH" | "ADMIN";
 }
 
-
-export default function ChangePasswordPage() {
+const AdminChangePassword = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
@@ -78,12 +76,10 @@ export default function ChangePasswordPage() {
         }
     };
 
+
     return (
         <>
-            <div className="
-            bg-[#B67CDE] w-[250px] h-10 text-white p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
-                <h1 className="text-xl font-bold  ">เปลี่ยนรหัสผ่าน</h1>
-            </div>
+            <h2 className="text-3xl font-bold text-slate-800 pt-6 pl-6 mt-3 ml-2">เปลี่ยนรหัสผ่าน</h2>
             <main className="flex items-center justify-center px-4 py-10">
                 <div className="bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2">
                     {/* ซ้าย: welcome */}
@@ -130,5 +126,6 @@ export default function ChangePasswordPage() {
                 </div>
             </main>
         </>
-    );
+    )
 }
+export default AdminChangePassword

@@ -7,7 +7,11 @@ import type { appointments } from "@prisma/client";
 //ข้อมูลการนัดหมายทั้งหมด 
 export async function GET() {
     try {
-        const showAppoinment: appointments[] = await prisma.appointments.findMany({})
+        const showAppoinment: appointments[] = await prisma.appointments.findMany({
+            orderBy: [
+                { date: "desc" }
+            ]
+        })
         return NextResponse.json({ showAppoinment }, { status: 200 })
 
     } catch (error: unknown) {
