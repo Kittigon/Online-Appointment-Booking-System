@@ -9,6 +9,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en"  data-theme="light">
+      <header>
+          <title>Appointment Website</title>
+      </header>
       <body className="bg-[#E8D7F4] overflow-x-hidden min-h-screen">
         <Navbar/>
         {children}

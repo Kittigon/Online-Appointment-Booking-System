@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 // กำหนดเวลาในแต่ละวัน
 // สามารถปรับเปลี่ยนได้ตามต้องการ
@@ -8,7 +8,7 @@ const time = ["10:00", "11:00", "13:00", "14:00"];
 // ฟังก์ชันสำหรับสร้างวันที่ถัดไป 7 วัน
 const getNextWeekdays = (offset: number): string[] => {
     const days: string[] = [];
-    let date = new Date();
+    const date = new Date();
     date.setDate(date.getDate() + offset); // เริ่มจาก offset วันถัดไป
 
     while (days.length < 7) {
@@ -23,11 +23,10 @@ const getNextWeekdays = (offset: number): string[] => {
     return days;
 };
 
-// const date = getNextWeekdays();
 
 // สร้างสถานะเริ่มต้นสำหรับวันที่และเวลา
 // โดยเริ่มต้นให้ทุกวันและเวลาว่าง (true)
-const initStatus: Record<string, Record<string, boolean>> = {};
+// const initStatus: Record<string, Record<string, boolean>> = {};
 // date.forEach(date => {
 //     initStatus[date] = {};
 //     time.forEach(time => {
@@ -55,6 +54,15 @@ const formatThaiMonthYear = (dateStr: string): string => {
     });
 };
 
+type Appointment = {
+    name: string
+    code: string
+    phone: string
+    description: string
+    date: string
+    time: string
+}
+
 type User = {
     id: number;
     email: string;
@@ -78,69 +86,52 @@ const UserAppointment = () => {
     const [offset, setOffset] = useState(0);
     const [dateList, setDateList] = useState(getNextWeekdays(0));
 
-    //โหลดข้อมูลการนัดหมาย
-    useEffect(() => {
-        const newDates = getNextWeekdays(offset);
-        setDateList(newDates);
+    // const initStatus: Record<string, Record<string, boolean>> = {}
+    // dateList.forEach(date => {
+    //     initStatus[date] = {}
+    //     time.forEach(t => {
+    //         initStatus[date][t] = true
+    //     })
+    // })
 
-        const newStatus: typeof initStatus = {};
-        newDates.forEach(date => {
-            newStatus[date] = {};
-            time.forEach(t => {
-                newStatus[date][t] = true;
-            });
-        });
-
-        const FetchAppoinment = async () => {
-            try {
-                try {
-                    const res = await fetch('/api/appointment');
-                    const data = await res.json();
-                    data.showAppoinment.forEach((appoint: any) => {
-                        if (newStatus[appoint.date]?.[appoint.time] !== undefined) {
-                            newStatus[appoint.date][appoint.time] = false;
-                        }
-                    });
-                    setStatus(newStatus);
-                } catch (err) {
-                    console.log("โหลดนัดหมายล้มเหลว:", err);
-                }
-
-            } catch (error: unknown) {
-                if (error instanceof Error) {
-                    console.log("Load Appoinment Failed : ", error.message)
-                } else {
-                    console.log("Unknow error in Load Appoinment  !", error)
-                }
-            }
-        }
-
-        FetchAppoinment();
-        FecthUser();
-    }, [offset])
-
-
-
-    const FecthUser = async () => {
+    const FecthUser = useCallback(async () => {
         try {
-            const res = await fetch('/api/token', {
-                method: 'GET',
-                credentials: "include",
-            });
-
+            const res = await fetch("/api/token", { method: "GET", credentials: "include" });
             const data = await res.json();
-            // console.log("Data:", data);
-
-            if (res.ok) {
-                setData(data.user);
-            }
-            // } else {
-            //     console.log("ไม่พบ token หรือ token ไม่ถูกต้อง:", data.message);
-            // }
+            if (res.ok) setData(data.user);
         } catch (error) {
             console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
         }
-    }
+    }, []);
+
+    const FetchAppointment = useCallback(async (dates: string[]) => {
+        const newStatus: Record<string, Record<string, boolean>> = {};
+        dates.forEach(date => {
+            newStatus[date] = {};
+            time.forEach(t => (newStatus[date][t] = true));
+        });
+
+        try {
+            const res = await fetch("/api/appointment");
+            const data: { showAppoinment: Appointment[] } = await res.json();
+            data.showAppoinment.forEach(appoint => {
+                if (newStatus[appoint.date]?.[appoint.time] !== undefined) {
+                    newStatus[appoint.date][appoint.time] = false;
+                }
+            });
+
+            setStatus(newStatus);
+        } catch (error) {
+            console.error("โหลดนัดหมายล้มเหลว:", error);
+        }
+    }, []);
+    //โหลดข้อมูลการนัดหมาย
+    useEffect(() => {
+        const newDates = getNextWeekdays(offset)
+        setDateList(newDates)
+        FetchAppointment(newDates)
+        FecthUser()
+    }, [offset, FetchAppointment, FecthUser])
 
     // ฟังก์ชันสำหรับจัดการการเลือกวันและเวลา
     // ถ้าวันและเวลาเลือกได้ (ว่าง) จะอัปเดตสถาน 
@@ -302,7 +293,7 @@ const UserAppointment = () => {
                     >
                         ← ย้อนหลัง
                     </button>
-                    <span className="text-red-500 text-sm"> *** ต้องการนัดหมายล่วงหน้า 2 ชั่วโมง *** </span>
+                    <span className="text-red-500 text-sm"> *** ต้องนัดหมายล่วงหน้า 2 ชั่วโมง *** </span>
                     <button
                         onClick={() => { if (offset + 7 < 365) setOffset(prev => prev + 7) }}
 

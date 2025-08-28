@@ -1,121 +1,114 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-wrapper-object-types, @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import bcrypt from 'bcrypt'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+// =========================
+// RouteContext Type
+// =========================
+type SegmentParams<T extends Object = any> = T extends Record<string, any>
+    ? { [K in keyof T]: T[K] extends string ? string | string[] | undefined : never }
+    : T
+
+type RouteContext = { params: SegmentParams }
+
+// =========================
+// GET - ดึงข้อมูลผู้ใช้ตาม id
+// =========================
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const id = parseInt(params.id);
+        const id = Number(context.params.id)
+        if (isNaN(id)) {
+            return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+        }
+
         const showuser = await prisma.users.findUnique({
-            where: {
-                id: id
-            },
-            select: {
-                email: true,
-                name: true,
-                gender: true,
-                age: true
-            }
+            where: { id },
+            select: { email: true, name: true, gender: true, age: true }
         })
 
         return NextResponse.json({ showuser }, { status: 200 })
-
     } catch (error: unknown) {
-        if (error instanceof Error) {
-            console.error("GET ID User Error : ", error.message)
-        } else {
-            console.error("Unknow error in GET ID User : ", error)
-        }
-        return NextResponse.json({ message: "Sever GET ID User Error !" }, { status: 400 })
+        console.error("GET ID User Error:", error)
+        return NextResponse.json({ message: "Server GET ID User Error!" }, { status: 500 })
     }
 }
 
-interface editUser {
+// =========================
+// PUT - แก้ไขข้อมูลผู้ใช้
+// =========================
+interface EditUser {
     email: string;
     name: string;
     gender: string;
-    age: number
+    age: number;
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: RouteContext) {
     try {
-        const id = parseInt(params.id)
-        const body = await req.json() as editUser
-        const { email, name, gender, age } = body;
+        const id = Number(context.params.id)
+        if (isNaN(id)) {
+            return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+        }
+
+        const body = await req.json() as EditUser
+        const { email, name, gender, age } = body
+
         await prisma.users.update({
-            where: {
-                id: id
-            },
-            data: {
-                email,
-                name,
-                gender,
-                age
-            }
+            where: { id },
+            data: { email, name, gender, age }
         })
 
-        return NextResponse.json({ message: "Update User Success !" }, { status: 200 })
-
+        return NextResponse.json({ message: "Update User Success!" }, { status: 200 })
     } catch (error: unknown) {
-        if (error instanceof Error) {
-            console.error("PUT ID User Error : ", error.message)
-        } else {
-            console.error("Unknow error in PUT ID User Error !", error)
-        }
-        return NextResponse.json({ message: "Sever PUT ID User Error !" }, { status: 400 })
+        console.error("PUT ID User Error:", error)
+        return NextResponse.json({ message: "Server PUT ID User Error!" }, { status: 500 })
     }
 }
 
-interface chagepassword {
+// =========================
+// PATCH - เปลี่ยนรหัสผ่านผู้ใช้
+// =========================
+interface ChangePassword {
     password: string;
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: RouteContext) {
     try {
-        const id = parseInt(params.id)
-        const body = await req.json() as chagepassword;
-        const { password } = body;
+        const id = Number(context.params.id)
+        if (isNaN(id)) {
+            return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+        }
 
-        //hashPassword
+        const { password } = await req.json() as ChangePassword
         const hashPassword = await bcrypt.hash(password, 10)
 
         await prisma.users.update({
-            where: {
-                id: id
-            },
-            data: {
-                password: hashPassword
-            }
+            where: { id },
+            data: { password: hashPassword }
         })
 
-        return NextResponse.json({ message: "Update Password Success !" }, { status: 200 })
-
+        return NextResponse.json({ message: "Update Password Success!" }, { status: 200 })
     } catch (error: unknown) {
-        if (error instanceof Error) {
-            console.error("PATCH ID User Error : ", error.message)
-        } else {
-            console.error("Unknow error in PATCH ID User ! ", error)
-        }
-        return NextResponse.json({ message: "Sever PATCH ID User Error !" }, { status: 400 })
+        console.error("PATCH ID User Error:", error)
+        return NextResponse.json({ message: "Server PATCH ID User Error!" }, { status: 500 })
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+// =========================
+// DELETE - ลบผู้ใช้
+// =========================
+export async function DELETE(req: NextRequest, context: RouteContext) {
     try {
-        const id = parseInt(params.id)
-        await prisma.users.delete({
-            where: {
-                id: id
-            }
-        })
-
-        return NextResponse.json({ message: "Delete User Success !" }, { status: 200 })
-    } catch (error: unknown) {
-        console.log(error)
-        if (error instanceof Error) {
-            console.error("DELETE ID User Error : ", error.message)
-        } else {
-            console.error("Unknow error in DELETE ID User ! ", error)
+        const id = Number(context.params.id)
+        if (isNaN(id)) {
+            return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
         }
-        return NextResponse.json({ message: "Sever DELETE ID User !" }, { status: 400 })
+
+        await prisma.users.delete({ where: { id } })
+        return NextResponse.json({ message: "Delete User Success!" }, { status: 200 })
+    } catch (error: unknown) {
+        console.error("DELETE ID User Error:", error)
+        return NextResponse.json({ message: "Server DELETE ID User Error!" }, { status: 500 })
     }
 }

@@ -51,8 +51,8 @@ const Navbar = () => {
             });
 
             if (res.ok) {
-                setData(null); // Clear user data on successful logout
-                window.location.href = '/login'; // Redirect to login page
+                setData(null); 
+                window.location.href = '/login'; 
                 FecthUser();
             } else {
                 const errorData = await res.json();
@@ -147,6 +147,9 @@ const Navbar = () => {
                                             </li>
                                             <li>
                                                 <Link href="/changepassword" className="block px-4 py-2 hover:bg-gray-100">เปลี่ยนรหัสผ่าน</Link>
+                                            </li>
+                                            <li>
+                                                <Link href="/reportproblem" className="block px-4 py-2 hover:bg-gray-100">รายงานปัญหา</Link>
                                             </li>
                                             <li>
                                                 <button onClick={() => { handleLogout() }} className="block px-4 py-2 w-full text-left hover:bg-gray-100 text-red-600">ออกจากระบบ</button>

@@ -1,9 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CalendarDays } from 'lucide-react';
-import { Clock } from 'lucide-react';
-import { MapPin } from 'lucide-react';
+import { CalendarDays, Clock, MapPin } from 'lucide-react';
 
 type Appointment = {
     id: number;
@@ -23,7 +21,6 @@ type User = {
     role: "USER" | "MENTALHEALTH" | "ADMIN";
 }
 
-
 const formatThaiDate = (dateStr: string): string => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('th-TH', {
@@ -34,37 +31,12 @@ const formatThaiDate = (dateStr: string): string => {
     });
 };
 
-
 const UserHistory = () => {
     const [appointments, setAppointments] = useState<Appointment[]>([])
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<User | null>(null)
 
-    useEffect(() => {
-        FecthUser();
-    }, []);
-
-    useEffect(() => {
-        if (data?.id) {
-            fetchAppointments();
-        }
-    }, [data]);
-
-    const fetchAppointments = async () => {
-        const userId = data?.id;
-        try {
-            const res = await fetch(`/api/appointmenthistory?userId=${userId}`)
-            const data: Appointment[] = await res.json()
-
-            // แสดงเฉพาะรายการที่สถานะ CONFIRMED 
-            const confirmedOnly = data.filter(item => item.status === 'CONFIRMED')
-            setAppointments(confirmedOnly)
-            setLoading(false);
-        } catch (error) {
-            console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error)
-        }
-    }
-
+    // ดึงข้อมูลผู้ใช้ตอน mount
     const FecthUser = async () => {
         try {
             const res = await fetch('/api/token', {
@@ -72,19 +44,37 @@ const UserHistory = () => {
                 credentials: "include",
             });
 
-            const data = await res.json();
-            // console.log("Data:", data);
-
+            const json = await res.json();
             if (res.ok) {
-                setData(data.user);
+                setData(json.user);
             }
-            // } else {
-            //     console.log("ไม่พบ token หรือ token ไม่ถูกต้อง:", data.message);
-            // }
         } catch (error) {
             console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
         }
-    }
+    };
+
+    useEffect(() => {
+        FecthUser();
+    }, []);
+
+    // โหลด appointment เมื่อ data?.id เปลี่ยน
+    useEffect(() => {
+        if (!data?.id) return;
+
+        const loadAppointments = async () => {
+            try {
+                const res = await fetch(`/api/appointmenthistory?userId=${data.id}`);
+                const result: Appointment[] = await res.json();
+                const confirmedOnly = result.filter(item => item.status === 'CONFIRMED');
+                setAppointments(confirmedOnly);
+                setLoading(false);
+            } catch (error) {
+                console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
+            }
+        };
+
+        loadAppointments();
+    }, [data?.id]);
 
     return (
         <>
@@ -107,14 +97,14 @@ const UserHistory = () => {
                                 <div className="text-sm sm:text-base">
                                     <p className='flex items-center gap-2 mb-2.5'>
                                         <CalendarDays />
-                                        <strong >{formatThaiDate(item.date)}</strong>
+                                        <strong>{formatThaiDate(item.date)}</strong>
                                     </p>
                                     <p className='flex items-center gap-2 mb-2.5'>
                                         <Clock />
                                         <strong></strong> {item.time}
                                     </p>
                                     <p className='flex items-center gap-2 mb-2.5'>
-                                        <MapPin/>
+                                        <MapPin />
                                         <span> อาคารสงวนเสริมศรี </span>
                                     </p>
                                     <div className='flex justify-between'>

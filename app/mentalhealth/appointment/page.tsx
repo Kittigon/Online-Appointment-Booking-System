@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-wrapper-object-types, @typescript-eslint/no-unused-vars */
 'use client';
 import { useState, useEffect } from "react";
 import { Clock } from 'lucide-react'
-
 const time = ["10:00", "11:00", "13:00", "14:00"];
 
 const getDaysInMonth = (offset: number): string[] => {
@@ -34,6 +34,16 @@ const getDaysInMonth = (offset: number): string[] => {
     return days;
 };
 
+type Appoinment = {
+    id: number;
+    userId: number;
+    name: string;
+    code: string;
+    phone: string;
+    description: string;
+    date: string;
+    time: string;
+}
 
 type AppointmentInfo = null | {
     name: string;
@@ -119,7 +129,7 @@ const MentalhealthAppointment = () => {
 
             const updatedStatus: typeof status = { ...status };
 
-            data.showAppoinment.forEach((appoint: any) => {
+            data.showAppoinment.forEach((appoint: Appoinment) => {
                 if (updatedStatus[appoint.date] && updatedStatus[appoint.date][appoint.time] === null) {
                     updatedStatus[appoint.date][appoint.time] = {
                         name: appoint.name,
@@ -312,7 +322,7 @@ const MentalhealthAppointment = () => {
                         const todayStr = new Date().toISOString().split('T')[0];
                         const todayAppointments = status[todayStr] || {};
 
-                        const bookedTimes = Object.entries(todayAppointments).filter(([_, info]) => info !== null);
+                        const bookedTimes = Object.entries(todayAppointments).filter(([ info]) => info !== null);
 
                         if (bookedTimes.length === 0) {
                             return <p className="text-gray-500">ยังไม่มีการนัดหมายวันนี้</p>;

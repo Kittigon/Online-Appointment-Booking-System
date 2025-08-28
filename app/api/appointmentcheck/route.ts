@@ -14,7 +14,10 @@ export async function GET(req: NextRequest) {
         const showAppoinment = await prisma.appointments.findMany({
             where: {
                 userId: userId
-            }
+            },
+            orderBy: [
+                { date: 'desc' },
+                { time: 'desc' }]
         });
 
         return NextResponse.json({ showAppoinment });

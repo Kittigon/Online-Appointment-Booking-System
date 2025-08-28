@@ -1,7 +1,7 @@
 // app/admin/layout.js
 "use client";
 
-import { useState , useEffect} from "react";
+import { useState } from "react";
 import {
     LayoutDashboard,
     Users,
@@ -16,41 +16,9 @@ import {
 import Link from "next/link";
 import { ReactNode } from "react";
 
-type User = {
-    id: number;
-    email: string;
-    name: string
-    role: "USER" | "MENTALHEALTH" | "ADMIN";
-}
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [data, setData] = useState<User | null>(null)
-
-        useEffect(() => {
-                FecthUser();
-            }, [])
-    
-        const FecthUser = async () => {
-            try {
-                const res = await fetch('/api/token', {
-                    method: 'GET',
-                    credentials: "include",
-                });
-    
-                const data = await res.json();
-                // console.log("Data:", data);
-    
-                if (res.ok) {
-                    setData(data.user);
-                }
-                // } else {
-                //     console.log("ไม่พบ token หรือ token ไม่ถูกต้อง:", data.message);
-                // }
-            } catch (error) {
-                console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
-            }
-        }
 
     const handleLogout = async () => {
         try {
@@ -60,9 +28,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             });
 
             if (res.ok) {
-                setData(null); // Clear user data on successful logout
-                window.location.href = '/login'; // Redirect to login page
-                FecthUser();
+                window.location.href = '/login'; 
             } else {
                 const errorData = await res.json();
                 console.error("Logout failed:", errorData.error);

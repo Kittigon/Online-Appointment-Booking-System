@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import type { users } from "@prisma/client";
 
-export async function GET(req: NextResponse) {
+export async function GET() {
     try {
         const showuser: users[] = await prisma.users.findMany({})
         return NextResponse.json( showuser )

@@ -1,56 +1,79 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-wrapper-object-types, @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 
+// =========================
+// RouteContext Type
+// =========================
+type SegmentParams<T extends Object = any> = T extends Record<string, any>
+    ? { [K in keyof T]: T[K] extends string ? string | string[] | undefined : never }
+    : T
 
-// mentalhealth | admin แก้ไขการนัดหมาย
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+type RouteContext = { params: SegmentParams }
+
+// =========================
+// PUT - แก้ไขการนัดหมาย
+// สำหรับ mentalhealth | admin
+// =========================
+export async function PUT(
+    req: Request,
+    context: RouteContext
+) {
     try {
-        const id = parseInt(params.id);
+        const id = Number(context.params.id)
+        if (isNaN(id)) {
+            return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+        }
+
         const body = await req.json()
-        const { date, time, description } = body;
+        const { date, time, description } = body
 
         await prisma.appointments.update({
-            where: {
-                id: id
-            },
-            data: {
-                date,
-                time,
-                description
-            }
+            where: { id },
+            data: { date, time, description },
         })
 
-        return NextResponse.json({ message: "Update Appoinment Success !" }, { status: 200 })
-
-
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            console.error("PUT ID Appoinment Error : ", error.message)
-        } else {
-            console.error("Unknow error in PUT ID Appoinment ! ", error)
-        }
-        return NextResponse.json({ message: "Sever PUT ID Appoinment !" }, { status: 400 })
+        return NextResponse.json(
+            { message: "Update Appointment Success!" },
+            { status: 200 }
+        )
+    } catch (error) {
+        console.error("PUT ID Appointment Error:", error)
+        return NextResponse.json(
+            { message: "Server PUT ID Appointment Error!" },
+            { status: 500 }
+        )
     }
 }
 
-// mentalhealth | admin ลบข้อมูลการนัดหมาย
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+// =========================
+// DELETE - ลบการนัดหมาย
+// สำหรับ mentalhealth | admin
+// =========================
+export async function DELETE(
+    req: NextRequest,
+    context: RouteContext
+) {
     try {
-        const id = parseInt(params.id);
+        const id = Number(context.params.id)
+        if (isNaN(id)) {
+            return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+        }
+
         await prisma.appointments.delete({
-            where: {
-                id
-            }
+            where: { id }
         })
 
-        return NextResponse.json({ message: "DELETE Appoinment Success !" })
-
+        return NextResponse.json({ message: "DELETE Appointment Success!" }, { status: 200 })
     } catch (error: unknown) {
         if (error instanceof Error) {
-            console.error("DELETE ID User Error : ", error.message)
+            console.error("DELETE ID Appointment Error:", error.message)
         } else {
-            console.error("Unknow error in DELETE ID User !", error)
+            console.error("Unknown error in DELETE ID Appointment!", error)
         }
-        return NextResponse.json({ message: "Sever DELETE ID Appoinment Error !" }, { status: 400 })
+        return NextResponse.json(
+            { message: "Server DELETE ID Appointment Error!" },
+            { status: 500 }
+        )
     }
 }

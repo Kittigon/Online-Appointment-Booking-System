@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 
 
 type User = {
@@ -13,12 +13,29 @@ type User = {
 
 const AdminProfile = () => {
     const [formdata, setFormdata] = useState({
-            name: '',
-            email: '',
-            gender: '',
-            age: 0,
-        });
-        const [data, setData] = useState<User | null>(null)
+        name: '',
+        email: '',
+        gender: '',
+        age: 0,
+    });
+    const [data, setData] = useState<User | null>(null)
+
+    const loadData = useCallback(async () => {
+        const id = data?.id
+        if (!id) return
+
+        try {
+            const res = await fetch(`/api/user/${id}`,
+                {
+                    method: "GET", headers:
+                        { "Content-type": "application/json" }
+                })
+            const data = await res.json()
+            setFormdata(data.showuser)
+        } catch (error) {
+            console.log("เกิดข้อผิดพลาดในการโหลดข้อมูล : ", error)
+        }
+    }, [data?.id])
 
     useEffect(() => {
         FecthUser();
@@ -28,7 +45,7 @@ const AdminProfile = () => {
         if (data?.id) {
             loadData();
         }
-    }, [data])
+    }, [data, loadData])
 
     const FecthUser = async () => {
         try {
@@ -43,62 +60,44 @@ const AdminProfile = () => {
             if (res.ok) {
                 setData(data.user);
             }
-            // } else {
-            //     console.log("ไม่พบ token หรือ token ไม่ถูกต้อง:", data.message);
-            // }
         } catch (error) {
             console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
         }
     }
 
-    const loadData = async () => {
-        const id = data?.id;
-        try {
-            const res = await fetch(`/api/user/` + id, {
-                method: "GET",
-                headers: {
-                    "Content-type": "application/json"
-                },
-            })
 
-            const data = await res.json();
-            setFormdata(data.showuser);
-        } catch (error) {
-            console.log("เกิดข้อผิดพลาดในการโหลดข้อมูล : ", error)
-        }
-    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormdata(prev => ({
-        ...prev,
-        [name]: name === 'age' ? Number(value) : value
-    }));
+            ...prev,
+            [name]: name === 'age' ? Number(value) : value
+        }));
     };
 
-    const handleSubmit = async(e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         // console.log('Saving profile:', formdata);
-        const id = data?.id ;
+        const id = data?.id;
         try {
-            const res  = await fetch('/api/user/'+id ,{
-                method:"PUT",
-                headers:{
-                    'Content-Type':'applications/json'
+            const res = await fetch('/api/user/' + id, {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'applications/json'
                 },
-                body:JSON.stringify(formdata)
+                body: JSON.stringify(formdata)
             })
 
-            if(res.ok){
+            if (res.ok) {
                 alert('แก้ไขข้อมูลสำเร็จ !!! ')
                 loadData();
             }
 
         } catch (error) {
-            console.log('เกิดข้อผิดพลาดในการแก้ไขข้อมูล : ',error)
+            console.log('เกิดข้อผิดพลาดในการแก้ไขข้อมูล : ', error)
         }
     };
-    
+
     return (
         <>
             <h2 className="text-3xl font-bold text-slate-800 pt-6 pl-6 mt-3 ml-2">โปรไฟล์</h2>

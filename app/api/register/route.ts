@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import bcrypt from 'bcrypt'
-
-interface CreateUsetinput {
-    email: string;
-    password: string;
-    name: string;
-}
+import type { users } from "@prisma/client";
 
 
 export async function POST(req: NextRequest) {
-    const body = await req.json() as CreateUsetinput;
-    const { email, password, name } = body;
+    const body = await req.json() as users;
+    const { email, password, name , gender , age } = body;
     try {
         const user = await prisma.users.findUnique({
             where: {
@@ -32,6 +27,9 @@ export async function POST(req: NextRequest) {
                 email: email,
                 password: hashPassword,
                 name: name,
+                gender,
+                age
+                
             }
         })
 

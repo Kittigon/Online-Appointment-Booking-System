@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect , useCallback } from 'react';
 
 
 type User = {
@@ -21,83 +21,75 @@ export default function EditProfile() {
     });
     const [data, setData] = useState<User | null>(null)
 
-    useEffect(() => {
-        FecthUser();
+    // ฟังก์ชันดึง user token
+    const FecthUser = useCallback(async () => {
+        try {
+            const res = await fetch("/api/token", {
+                method: "GET",
+                credentials: "include",
+            })
+            const result = await res.json()
+            if (res.ok) {
+                setData(result.user)
+            }
+        } catch (error) {
+            console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error)
+        }
     }, [])
 
-    useEffect(() => {
-        if (data?.id) {
-            loadData();
-        }
-    }, [data])
-
-    // decoded token
-    const FecthUser = async () => {
+    // ฟังก์ชันโหลดข้อมูล user
+    const loadData = useCallback(async () => {
+        if (!data?.id) return
         try {
-            const res = await fetch('/api/token', {
-                method: 'GET',
-                credentials: "include",
-            });
-
-            const data = await res.json();
-            // console.log("Data:", data);
-
-            if (res.ok) {
-                setData(data.user);
-            }
-            // } else {
-            //     console.log("ไม่พบ token หรือ token ไม่ถูกต้อง:", data.message);
-            // }
-        } catch (error) {
-            console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
-        }
-    }
-
-    const loadData = async () => {
-        const id = data?.id;
-        try {
-            const res = await fetch(`/api/user/` + id, {
+            const res = await fetch(`/api/user/${data.id}`, {
                 method: "GET",
-                headers: {
-                    "Content-type": "application/json"
-                },
+                headers: { "Content-type": "application/json" },
             })
-
-            const data = await res.json();
-            setFormdata(data.showuser);
+            const result = await res.json()
+            setFormdata(result.showuser)
         } catch (error) {
-            console.log("เกิดข้อผิดพลาดในการโหลดข้อมูล : ", error)
+            console.log("เกิดข้อผิดพลาดในการโหลดข้อมูล:", error)
         }
-    }
+    }, [data?.id])
+
+    // useEffect เรียก FecthUser
+    useEffect(() => {
+        FecthUser()
+    }, [FecthUser])
+
+    // useEffect เรียก loadData เมื่อ data เปลี่ยน
+    useEffect(() => {
+        loadData()
+    }, [loadData])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormdata(prev => ({
-        ...prev,
-        [name]: name === 'age' ? Number(value) : value
-    }));
+            ...prev,
+            [name]: name === 'age' ? Number(value) : value
+        }));
     };
 
-    const handleSubmit = async(e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         // console.log('Saving profile:', formdata);
-        const id = data?.id ;
+        const id = data?.id;
         try {
-            const res  = await fetch('/api/user/'+id ,{
-                method:"PUT",
-                headers:{
-                    'Content-Type':'applications/json'
+            const res = await fetch('/api/user/' + id, {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'applications/json'
                 },
-                body:JSON.stringify(formdata)
+                body: JSON.stringify(formdata)
             })
 
-            if(res.ok){
+            if (res.ok) {
                 alert('แก้ไขข้อมูลสำเร็จ !!! ')
                 loadData();
             }
 
         } catch (error) {
-            console.log('เกิดข้อผิดพลาดในการแก้ไขข้อมูล : ',error)
+            console.log('เกิดข้อผิดพลาดในการแก้ไขข้อมูล : ', error)
         }
     };
 

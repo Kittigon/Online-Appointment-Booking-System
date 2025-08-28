@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import {  NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import type { dass_21_result } from "@prisma/client";
 
