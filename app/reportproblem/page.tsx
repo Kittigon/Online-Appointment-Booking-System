@@ -23,6 +23,8 @@ const ReportProblem = () => {
     const [report, setReports] = useState<Report | null>(null);
     const [data, setData] = useState<Users | null>(null);
 
+    const [loading, setLoading] = useState(true);
+
     // ดึงข้อมูลผู้ใช้
     const FecthUser = async () => {
         try {
@@ -47,19 +49,25 @@ const ReportProblem = () => {
 
     // useEffect สำหรับโหลด report เมื่อ data?.id เปลี่ยน
     useEffect(() => {
-        if (!data?.id) return;
+        try {
+            if (!data?.id) return;
+            setLoading(true);
+            const loadReports = async () => {
+                try {
+                    const res = await fetch(`/api/reportproblemprivate?userId=${data.id}`);
+                    const json = await res.json();
+                    setReports(json);
+                } catch (error) {
+                    console.error("Error fetching reports:", error);
+                }
+            };
 
-        const loadReports = async () => {
-            try {
-                const res = await fetch(`/api/reportproblemprivate?userId=${data.id}`);
-                const json = await res.json();
-                setReports(json);
-            } catch (error) {
-                console.error("Error fetching reports:", error);
-            }
-        };
-
-        loadReports();
+            loadReports();
+        } catch (error) {
+            console.error("Error in useEffect for loading reports:", error);
+        } finally {
+            setLoading(false);
+        }
     }, [data?.id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -86,6 +94,22 @@ const ReportProblem = () => {
             console.error("Error submitting report:", error);
         }
     };
+
+    if (loading) {
+        return (
+            <>
+                <div className="bg-[#B67CDE] w-[250px] h-10 text-white p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
+                    <h1 className="text-xl font-bold">รายงานปัญหา</h1>
+                </div>
+                <div className=" flex items-center justify-center">
+                    <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-3"></div>
+                        <p>กำลังโหลดข้อมูล...</p>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
@@ -149,10 +173,10 @@ const ReportProblem = () => {
                             </div>
                             <span
                                 className={`px-2 py-1 rounded-lg text-xs font-medium ${report.status === "NEW"
-                                        ? "bg-yellow-100 text-yellow-700"
-                                        : report.status === "IN_PROGRESS"
-                                            ? "bg-blue-100 text-blue-700"
-                                            : "bg-green-100 text-green-700"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : report.status === "IN_PROGRESS"
+                                        ? "bg-blue-100 text-blue-700"
+                                        : "bg-green-100 text-green-700"
                                     }`}
                             >
                                 {report.status}

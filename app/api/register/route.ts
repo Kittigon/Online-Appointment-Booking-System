@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import bcrypt from 'bcrypt'
 import type { users } from "@prisma/client";
-
+import { registerSchema } from "@/schemas/register";
 
 export async function POST(req: NextRequest) {
     const body = await req.json() as users;
-    const { email, password, name , gender , age } = body;
+    const { email, password, name, gender, age } = body;
+
+    const parsed = registerSchema.safeParse({ name, email, password, gender, age });
+
+    if (!parsed.success) {
+        return Response.json(
+            { message: parsed.error.issues[0].message },
+            { status: 400 }
+        );
+    }
+
     try {
         const user = await prisma.users.findUnique({
             where: {
@@ -29,7 +39,7 @@ export async function POST(req: NextRequest) {
                 name: name,
                 gender,
                 age
-                
+
             }
         })
 

@@ -12,8 +12,8 @@ import {
     KeyRound,
     LogOut,
     Menu,
-    Upload,
-    MonitorX
+    MonitorX,
+    File
 } from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -111,10 +111,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     </Link>
 
                     <Link
-                        href="/admin/upload"
+                        href="/admin/documents/csvdoc"
                         className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-100 text-slate-700 hover:text-purple-700 transition"
                     >
-                        <Upload className="w-5 h-5" /> อัปโหลดไฟล์ CSV
+                        <File className="w-5 h-5" /> จัดการเอกสาร CSV
                     </Link>
 
                     <Link

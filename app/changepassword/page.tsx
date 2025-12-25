@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 type User = {
     id: number;
@@ -17,30 +17,30 @@ export default function ChangePasswordPage() {
 
     const [data, setData] = useState<User | null>(null)
 
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
-        FecthUser();
+        fetchUser();
     }, [])
 
-    const FecthUser = async () => {
+    const fetchUser = useCallback(async () => {
         try {
             const res = await fetch('/api/token', {
                 method: 'GET',
                 credentials: "include",
             });
 
-            const data = await res.json();
-            // console.log("Data:", data);
+            const result = await res.json();
 
-            if (res.ok) {
-                setData(data.user);
+            if (res.ok && result.user) {
+                setData(result.user);
             }
-            // } else {
-            //     console.log("ไม่พบ token หรือ token ไม่ถูกต้อง:", data.message);
-            // }
         } catch (error) {
             console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
+        } finally {
+            setLoading(false);
         }
-    }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -77,6 +77,25 @@ export default function ChangePasswordPage() {
             console.log('เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน :', error)
         }
     };
+
+    if (loading) {
+        return (
+            <>
+                <div className="
+            bg-[#B67CDE] w-[250px] h-10 text-white p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
+                    <h1 className="text-xl font-bold  ">เปลี่ยนรหัสผ่าน</h1>
+                </div>
+                <div className="flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-3"></div>
+                            <p>กำลังโหลดข้อมูล...</p>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>

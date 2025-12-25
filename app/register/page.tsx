@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { UserPlus } from "lucide-react";
+import { registerSchema } from '@/schemas/register';
 
 const RegisterPage = () => {
     const [name, setName] = useState("")
@@ -39,11 +40,17 @@ const RegisterPage = () => {
         setError("")
         setEmailUnique("")
 
+        const parsed = registerSchema.safeParse({ name, email, password, gender, age });
 
-        if (!name || !email || !password || !gender || !age) {
-            setError("กรุณากรอกข้อมูลให้ครบถ้วน")
-            return
+        if (!parsed.success) {
+            setError(parsed.error.issues[0].message);
+            return;
         }
+
+        // if (!name || !email || !password || !gender || !age) {
+        //     setError("กรุณากรอกข้อมูลให้ครบถ้วน")
+        //     return
+        // }
 
         try {
             const res = await fetch("/api/register", {
@@ -51,11 +58,10 @@ const RegisterPage = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ name, email, password , gender, age : Number(age) }),
+                body: JSON.stringify({ name, email, password, gender, age: Number(age) }),
             })
 
             const data = await res.json()
-            // console.log("Response data:", data)
 
             if (res.ok) {
                 // Registration successful
@@ -65,7 +71,7 @@ const RegisterPage = () => {
                 setPassword("")
                 setGender("")
                 setAge("")
-                
+
             } else {
                 // Handle errors
                 if (data.message === "Email already exists") {

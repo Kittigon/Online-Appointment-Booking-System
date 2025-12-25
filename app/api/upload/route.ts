@@ -4,6 +4,20 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// route.ts
+export async function GET() {
+    const data = await prisma.documents.findMany({
+        select: {
+            id: true,
+            content: true
+        },
+        orderBy: { id: "desc" },
+        take: 100
+    });
+
+    return NextResponse.json(data);
+}
+
 export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -11,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     const csvText = await file.text();
     const records: Record<string, string>[] = parse(csvText, {
-        columns: true, 
+        columns: true,
         skip_empty_lines: true,
         relax_quotes: true,
     });

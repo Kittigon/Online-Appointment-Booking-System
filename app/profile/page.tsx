@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect , useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 
 type User = {
@@ -20,6 +20,7 @@ export default function EditProfile() {
         age: 0,
     });
     const [data, setData] = useState<User | null>(null)
+    const [loading, setLoading] = useState(true);
 
     // ฟังก์ชันดึง user token
     const FecthUser = useCallback(async () => {
@@ -39,18 +40,21 @@ export default function EditProfile() {
 
     // ฟังก์ชันโหลดข้อมูล user
     const loadData = useCallback(async () => {
-        if (!data?.id) return
+        if (!data?.id) return;
+        setLoading(true);
         try {
             const res = await fetch(`/api/user/${data.id}`, {
                 method: "GET",
-                headers: { "Content-type": "application/json" },
-            })
-            const result = await res.json()
-            setFormdata(result.showuser)
+                headers: { "Content-Type": "application/json" },
+            });
+            const result = await res.json();
+            setFormdata(result.showuser);
         } catch (error) {
-            console.log("เกิดข้อผิดพลาดในการโหลดข้อมูล:", error)
+            console.log("เกิดข้อผิดพลาดในการโหลดข้อมูล:", error);
+        } finally {
+            setLoading(false);
         }
-    }, [data?.id])
+    }, [data?.id]);
 
     // useEffect เรียก FecthUser
     useEffect(() => {
@@ -92,6 +96,23 @@ export default function EditProfile() {
             console.log('เกิดข้อผิดพลาดในการแก้ไขข้อมูล : ', error)
         }
     };
+
+    if (loading) {
+        return (
+            <>
+                <div className="
+            bg-[#B67CDE] w-[250px] h-10 text-white p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
+                    <h1 className="text-xl font-bold  ">โปรไฟล์</h1>
+                </div>
+                <div className=" flex items-center justify-center">
+                    <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-3"></div>
+                        <p>กำลังโหลดข้อมูล...</p>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>

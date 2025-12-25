@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from "react";
+import { appointmentSchema } from "@/schemas/appointment";
 
 // กำหนดเวลาในแต่ละวัน
 // สามารถปรับเปลี่ยนได้ตามต้องการ
@@ -192,8 +193,21 @@ const UserAppointment = () => {
     // และแสดงข้อความแจ้งเตือนการจองสำเร็จ
     const handleSave = async () => {
         try {
-            if (!selectedDate || !selectedTime) return alert("กรุณาเลือกวันและเวลาก่อน");
-            if (!name || !code || !phone) return alert("กรุณากรอกข้อมูลให้ครบ");
+
+            const validateData = appointmentSchema.safeParse({
+                name,
+                code,
+                phone,
+                description,
+                date: selectedDate,
+                time: selectedTime
+            });
+            
+            if (!validateData.success) {
+                const errorMessages = validateData.error.issues.map(err => err.message).join("\n");
+                return alert(`\n${errorMessages}`);
+            }
+            // if (!name || !code || !phone) return alert("กรุณากรอกข้อมูลให้ครบ");
 
             const userId = data?.id;
 

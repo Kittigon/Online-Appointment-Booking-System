@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { UserRound } from 'lucide-react'
+import { loginSchema } from '@/schemas/login'
 
 type User = {
     id: number;
@@ -35,10 +36,18 @@ const LoginPage = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!email || !password) {
-            setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+
+        const parsed = loginSchema.safeParse({ email, password });
+
+        if (!parsed.success) {
+            setError(parsed.error.issues[0].message);
             return;
         }
+        
+        // if (!email || !password) {
+        //     setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+        //     return;
+        // }
         setError('');
 
         try {

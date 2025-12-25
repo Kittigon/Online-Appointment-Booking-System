@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from "react";
+import { appointmentSchema } from "@/schemas/appointment";
 // import { Clock } from 'lucide-react'
 
 const time = ["10:00", "11:00", "13:00", "14:00"];
@@ -212,9 +213,23 @@ const MentalhealthAppointment = () => {
 
     const handleSave = async () => {
         try {
-            if (!selectedDate || !selectedTime) return alert("กรุณาเลือกวันและเวลา");
-            if (!name.trim()) return alert("กรุณากรอกชื่อ");
-            if (!code.trim() || !phone.trim()) return alert("กรุณากรอกรหัสและเบอร์โทรศัพท์");
+            const validateData = appointmentSchema.safeParse({
+                name,
+                code,
+                phone,
+                description,
+                date: selectedDate,
+                time: selectedTime
+            });
+
+            if (!validateData.success) {
+                const errorMessages = validateData.error.issues.map(err => err.message).join("\n");
+                return alert(`\n${errorMessages}`);
+            }
+
+            // if (!selectedDate || !selectedTime) return alert("กรุณาเลือกวันและเวลา");
+            // if (!name.trim()) return alert("กรุณากรอกชื่อ");
+            // if (!code.trim() || !phone.trim()) return alert("กรุณากรอกรหัสและเบอร์โทรศัพท์");
 
             const userId = data?.id;
 

@@ -3,11 +3,21 @@ import { serialize } from "cookie";
 import jwt from 'jsonwebtoken';
 import prisma from "@/utils/db";
 import bcrypt from 'bcrypt';
+import { loginSchema } from "@/schemas/login";
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { email, password } = body;
+
+        const parsed = loginSchema.safeParse({ email, password });
+
+        if (!parsed.success) {
+            return NextResponse.json(
+                { message: parsed.error.issues[0].message },
+                { status: 400 }
+            );
+        }
 
         const user = await prisma.users.findUnique({
             where: { email }

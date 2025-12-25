@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import type { appointments } from "@prisma/client";
+import { appointmentSchema } from "@/schemas/appointment";
 
 const formatThaiDate = (dateStr: string): string => {
     const date = new Date(dateStr);
@@ -49,6 +50,12 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json() as CreateAppoinment
         const { userId, name, date, code, phone, time, description } = body;
+
+        const parsed = appointmentSchema.safeParse({ name, date, code, phone, time, description });
+        if (!parsed.success) {
+            const errorMessages = parsed.error.issues.map(err => err.message).join("\n");
+            return NextResponse.json({ message: errorMessages }, { status: 400 });
+        }
 
         const exists = await prisma.appointments.findFirst({
             where: {
