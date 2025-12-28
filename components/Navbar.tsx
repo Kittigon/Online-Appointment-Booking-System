@@ -24,7 +24,7 @@ const Navbar = () => {
 
     const FecthUser = async () => {
         try {
-            const res = await fetch('/api/token', {
+            const res = await fetch('/api/auth/token', {
                 method: 'GET',
                 credentials: "include",
             });
@@ -45,7 +45,7 @@ const Navbar = () => {
 
     const handleLogout = async () => {
         try {
-            const res = await fetch('/api/logout', {
+            const res = await fetch('/api/auth/logout', {
                 method: 'POST',
                 credentials: "include",
             });
