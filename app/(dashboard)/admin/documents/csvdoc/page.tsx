@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
 type Document = {
@@ -22,24 +22,28 @@ export default function DocumentsPage() {
     const [editContent, setEditContent] = useState("");
     const [saving, setSaving] = useState(false);
 
-    const loadData = async (pageNumber = page) => {
-        setLoading(true);
+    const loadData = useCallback(
+        async (pageNumber: number) => {
+            setLoading(true);
 
-        const res = await fetch(
-            `/api/system/upload?page=${pageNumber}&limit=${limit}`
-        );
-        const json = await res.json();
+            const res = await fetch(
+                `/api/system/upload?page=${pageNumber}&limit=${limit}`
+            );
+            const json = await res.json();
 
-        setDocs(json.data);
-        setTotalPages(json.pagination.totalPages);
-        setPage(json.pagination.page);
+            setDocs(json.data);
+            setTotalPages(json.pagination.totalPages);
+            setPage(json.pagination.page);
 
-        setLoading(false);
-    };
+            setLoading(false);
+        },
+        [limit]
+    );
 
     useEffect(() => {
         loadData(page);
-    }, [page]);
+    }, [page, loadData]);
+
 
     const handleDelete = async (id: number) => {
         if (!confirm("ต้องการลบข้อมูลนี้หรือไม่")) return;
@@ -86,7 +90,7 @@ export default function DocumentsPage() {
                     <button
                         onClick={() =>
                             window.location.href =
-                                "/api/system/documents/export/pdf"
+                            "/api/system/documents/export/pdf"
                         }
                         className="bg-gray-600 text-white px-4 py-2 rounded"
                     >
@@ -96,7 +100,7 @@ export default function DocumentsPage() {
                     <button
                         onClick={() =>
                             window.location.href =
-                                "/api/system/documents/export"
+                            "/api/system/documents/export"
                         }
                         className="bg-green-600 text-white px-4 py-2 rounded"
                     >

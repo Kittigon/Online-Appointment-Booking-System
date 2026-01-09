@@ -43,7 +43,7 @@ export default function NotificationsPage() {
                 });
                 const data = await res.json();
                 if (res.ok) setUser(data.user);
-            } catch (err) {
+            } catch {
                 console.log("Load user error");
             }
         };
@@ -69,7 +69,7 @@ export default function NotificationsPage() {
                 setNotifications(notiData.notifications || []);
                 setAppointments(appData.showAppoinment || []);
                 setDass21(dassData.DASS21noti || []);
-            } catch (err) {
+            } catch {
                 console.log("Load data error");
             } finally {
                 setLoading(false);
