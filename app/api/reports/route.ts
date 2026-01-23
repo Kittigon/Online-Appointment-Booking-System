@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import type { reportproblems } from "@prisma/client";
+import { getCache , setCache , delCache} from "@/utils/cache";
 
 
 //ปัญหาจากผู้ใช้งานทั้งหมด
 export async function GET() {
     try {
+        const cacheKey = 'reports:all';
+        const cached = await getCache(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
         const problems = await prisma.reportproblems.findMany({
             orderBy: {
                 createdAt: 'desc'
@@ -18,6 +25,9 @@ export async function GET() {
                 },
             },
         });
+
+        await setCache(cacheKey, problems, 120);
+
         return NextResponse.json(problems);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -53,6 +63,8 @@ export async function POST(req: NextRequest) {
                 reportId: reportproblems.id
             }
         })
+
+        await delCache('reports:all')
 
         return NextResponse.json({ message: "Report a Problem Success !" }, { status: 201 })
     } catch (error: unknown) {

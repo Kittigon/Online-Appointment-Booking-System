@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import type { reportproblems } from "@prisma/client";
+import { delCache } from "@/utils/cache";
+
 
 // =========================
 // PUT - แก้ไขฟอร์มปัญหาจากผู้ใช้งาน
@@ -20,6 +22,8 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
             where: { id: idNum },
             data: { type, description },
         })
+
+        await delCache('reports:all')
 
         return NextResponse.json(
             { message: "Update Report a Problem Success!" },
@@ -118,6 +122,8 @@ export async function PATCH(
         //     });
         // }
 
+        await delCache('reports:all')
+
         return NextResponse.json({ message: "Updated successfully", updated });
 
     } catch (error) {
@@ -141,6 +147,8 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
         await prisma.reportproblems.delete({
             where: { id: idNum },
         })
+
+        await delCache('reports:all')
 
         return NextResponse.json(
             { message: "Delete Report a Problem Success!" },

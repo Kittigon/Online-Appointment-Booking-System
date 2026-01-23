@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import bcrypt from 'bcrypt'
 import { changePasswordSchema } from '@/schemas/changePassword';
+import { getCache, setCache, delCache } from "@/utils/cache";
 
 
 // ดึงข้อมูลผู้ใช้ตาม ID
@@ -13,10 +14,18 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
             return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
         }
 
+        const cacheKey = `user:profile:${idNum}`
+        const cached = await getCache(cacheKey)
+        if (cached) {
+            return NextResponse.json(cached)
+        }
+
         const showuser = await prisma.users.findUnique({
             where: { id: idNum },
-            select: { id : true ,email: true, name: true, gender: true, age: true , phone: true, code: true }
+            select: { id: true, email: true, name: true, gender: true, age: true, phone: true, code: true }
         })
+
+        await setCache(cacheKey, { showuser }, 60)
 
         return NextResponse.json({ showuser }, { status: 200 })
     } catch (error: unknown) {
@@ -31,8 +40,8 @@ interface EditUser {
     name: string;
     gender: string;
     age: number;
-    phone ?: string;
-    code ?: string;
+    phone?: string;
+    code?: string;
 }
 
 // แก้ไขข้อมูลผู้ใช้
@@ -45,12 +54,15 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
         }
 
         const body = await req.json() as EditUser
-        const { email, name, gender, age ,phone , code  } = body
+        const { email, name, gender, age, phone, code } = body
 
         await prisma.users.update({
             where: { id: idNum },
-            data: { email, name, gender, age , phone, code }
+            data: { email, name, gender, age, phone, code }
         })
+
+        await delCache('user:all')
+        await delCache(`user:profile:${idNum}`)
 
         return NextResponse.json({ message: "Update User Success!" }, { status: 200 })
     } catch (error: unknown) {
@@ -121,6 +133,9 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
             data: { password: hashedPassword },
         });
 
+        await delCache('user:all')
+        await delCache(`user:profile:${userId}`)
+
         return NextResponse.json(
             { message: "เปลี่ยนรหัสผ่านสำเร็จ" },
             { status: 200 }
@@ -142,6 +157,10 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
         }
 
         await prisma.users.delete({ where: { id: idNum } })
+
+        await delCache('user:all')
+        await delCache(`user:profile:${idNum}`)
+        
         return NextResponse.json({ message: "Delete User Success!" }, { status: 200 })
     } catch (error: unknown) {
         console.error("DELETE ID User Error:", error)

@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { Status } from "@prisma/client";
+import { getCache, setCache } from "@/utils/cache";
 
+// ประวัติการนัดหมาย สำหรับ Mentalhealth
 export async function GET() {
     try {
+        const cacheKey = 'appointments:my-appointments';
+        const cached = await getCache(cacheKey);
+
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
         const appointments = await prisma.appointments.findMany({
             where: {
                 status: {
@@ -15,6 +24,8 @@ export async function GET() {
                 { time: "desc" },
             ],
         });
+
+        await setCache(cacheKey,  appointments , 60); 
 
         return NextResponse.json(appointments);
     } catch (error) {

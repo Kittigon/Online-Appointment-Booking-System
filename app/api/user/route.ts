@@ -1,18 +1,44 @@
 import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
-import type { users } from "@prisma/client";
+import { getCache , setCache } from "@/utils/cache";
+
+type Users = {
+    id: number;
+    email: string;
+    name: string;
+    role: string;
+    updateAt: Date;
+}
+
 
 export async function GET() {
     try {
-        const showuser: users[] = await prisma.users.findMany({})
-        return NextResponse.json( showuser )
-    } catch (error: unknown) {
-        if(error instanceof Error){
-            console.error("GET User Error : ",error.message)
-        }else{
-            console.error("Unknow error in GET User : ",error)
+        const cacheKey = 'user:all';
+        const cached = await getCache(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
         }
-        return NextResponse.json({ message: "Sever GET User Error ! " }, { status: 400 })
+
+        const showuser:Users[] = await prisma.users.findMany({
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                updateAt: true
+            },
+        });
+
+        await setCache(cacheKey, { showuser }, 60);
+
+        return NextResponse.json({ showuser }, { status: 200 });
+
+    } catch (error) {
+        console.error("GET User Error:", error);
+        return NextResponse.json(
+            { message: "Server GET User Error" },
+            { status: 500 }
+        );
     }
 }
 

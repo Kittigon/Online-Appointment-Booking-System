@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import type { appointments } from "@prisma/client";
 import { appointmentSchema } from "@/schemas/appointment";
+import {getCache , setCache , delCache} from "@/utils/cache";
 
 const formatThaiDate = (dateStr: string): string => {
     const date = new Date(dateStr);
@@ -16,12 +17,20 @@ const formatThaiDate = (dateStr: string): string => {
 //ข้อมูลการนัดหมายทั้งหมด 
 export async function GET() {
     try {
+        const cacheKey = 'appointments:all';
+
+        const cached = await getCache(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
         const showAppoinment: appointments[] = await prisma.appointments.findMany({
             orderBy: [
                 { date: "desc" },
                 { time: "desc" }
             ]
         })
+        await setCache(cacheKey,{ showAppoinment }, 60);
         return NextResponse.json({ showAppoinment }, { status: 200 })
 
     } catch (error: unknown) {
@@ -141,6 +150,8 @@ export async function POST(req: NextRequest) {
                 appointmentId: appointment.id
             }
         });
+
+        await delCache("appointments:all");
 
         return NextResponse.json(
             { message: "Create Appointment Success!" },

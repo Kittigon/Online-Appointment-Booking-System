@@ -4,7 +4,7 @@ import DatePicker, { registerLocale } from "react-datepicker";
 import { th } from "date-fns/locale/th";
 import "react-datepicker/dist/react-datepicker.css";
 import type { DisabledDate } from "@prisma/client";
-import {toast} from "react-hot-toast"
+import { toast } from "react-hot-toast"
 
 registerLocale("th", th);
 
@@ -57,9 +57,19 @@ export default function CloseDaysPage() {
     }, []);
 
     const fetchDisabledDates = async () => {
-        const res = await fetch("/api/appointments/disabled-date");
-        const data = await res.json();
-        setDisabledDates(data.disabled);
+        try {
+            const res = await fetch("/api/appointments/disabled-date");
+            const data = await res.json();
+
+            const safeData = Array.isArray(data?.disabled)
+                ? data.disabled
+                : [];
+
+            setDisabledDates(safeData);
+        } catch (err) {
+            console.error(err);
+            setDisabledDates([]);
+        }
     };
 
     const closeSingleDay = async () => {

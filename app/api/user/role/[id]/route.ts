@@ -1,5 +1,6 @@
 import prisma from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server";
+import { delCache } from "@/utils/cache";
 
 // PATCH: อัปเดต role หรือ password
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -26,6 +27,9 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
                 role: role
             }
         });
+
+        await delCache('user:all')
+        await delCache(`user:profile:${userId}`)
 
         return NextResponse.json({ message: "Updated Role successfully", updatedUser }, { status: 200 });
 

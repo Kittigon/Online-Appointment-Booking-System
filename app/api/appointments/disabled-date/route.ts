@@ -1,29 +1,54 @@
 import prisma from "@/utils/db";
+import { NextResponse } from "next/server";
+import { getCache, setCache, delCache } from "@/utils/cache";
+
 
 // ดึงวันปิดให้บริการ
 export async function GET() {
-    const disabled = await prisma.disabledDate.findMany();
-    return Response.json({ disabled });
+    try {
+        const cacheKey = 'disabled-date:all'
+        const cached = await getCache(cacheKey)
+        if (cached) {
+            return NextResponse.json(cached)
+        }
+
+        const disabled = await prisma.disabledDate.findMany();
+        await setCache(cacheKey, { disabled }, 60 * 10)
+
+        return NextResponse.json({ disabled });
+    } catch {
+        return NextResponse.json({ error: "Server Error" }, { status: 500 });
+    }
 }
 
 // เพิ่มวันปิดให้บริการ
 export async function POST(req: Request) {
-    const { date } = await req.json();
+    try {
+        const { date } = await req.json();
 
-    const exists = await prisma.disabledDate.findFirst({ where: { date } });
+        const exists = await prisma.disabledDate.findFirst({ where: { date } });
 
-    if (!exists) {
-        await prisma.disabledDate.create({ data: { date } });
+        if (!exists) {
+            await prisma.disabledDate.create({ data: { date } });
+        }
+
+        await delCache('disabled-date:all')
+
+        return NextResponse.json({ message: "ปิดวันนี้สำเร็จ" });
+    } catch {
+        return NextResponse.json({ error: "Server Error" }, { status: 500 });
     }
-
-    return Response.json({ message: "ปิดวันนี้สำเร็จ" });
 }
 
 // ลบวันปิดให้บริการ
 export async function DELETE(req: Request) {
-    const { date } = await req.json();
+    try {
+        const { date } = await req.json();
+        await prisma.disabledDate.deleteMany({ where: { date } });
+        await delCache('disabled-date:all')
 
-    await prisma.disabledDate.deleteMany({ where: { date } });
-
-    return Response.json({ message: "เปิดวันนี้สำเร็จ" });
+        return NextResponse.json({ message: "เปิดวันนี้สำเร็จ" });
+    } catch {
+        return NextResponse.json({ error: "Server Error" }, { status: 500 });
+    }
 }

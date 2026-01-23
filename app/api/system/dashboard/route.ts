@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
+import { getCache, setCache } from "@/utils/cache";
 
 export async function GET() {
     try {
+        const cacheKey = 'dashboard:admin';
+
+        const cached = await getCache(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
         const userCount = await prisma.users.count();
         const reportCount = await prisma.reportproblems.count();
         const assessmentCount = await prisma.dass_21_result.count();
@@ -58,19 +66,24 @@ export async function GET() {
             },
         });
 
-        return NextResponse.json({
+        const result = {
             userCount,
             reportCount,
             assessmentCount,
             riskAlertCount,
-            recentAlerts: [...recentReportAlerts, ...recentAssessmentAlerts].sort(
-                (a, b) => {
-                    const aTime = a.createdAt ? a.createdAt.getTime() : 0;
-                    const bTime = b.createdAt ? b.createdAt.getTime() : 0;
+            recentAlerts: [...recentReportAlerts, ...recentAssessmentAlerts]
+                .sort((a, b) => {
+                    const aTime = a.createdAt?.getTime() ?? 0;
+                    const bTime = b.createdAt?.getTime() ?? 0;
                     return bTime - aTime;
-                }
-            ).slice(0, 5) // รวมกันแล้วเอา 5 ล่าสุด
-        });
+                })
+                .slice(0, 5),
+        };
+
+        // เขียน cache (เช่น 60 วินาที)
+        await setCache(cacheKey, result, 60);
+
+        return NextResponse.json(result);
     } catch (error) {
         console.error("Dashboard API Error:", error);
         return NextResponse.json(

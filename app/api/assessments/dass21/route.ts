@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
+import { getCache , setCache , delCache} from "@/utils/cache";
 
 export async function GET() {
     try {
+        const cacheKey = 'dass21:all'
+        const cached = await getCache(cacheKey)
+        if (cached) {
+            return NextResponse.json(cached)
+        }
+
         const dass21List = await prisma.dass_21_result.findMany({
             include:{
                 user_consent:{
@@ -14,6 +21,8 @@ export async function GET() {
                 }
             }
         })
+
+        await setCache(cacheKey, { dass21List }, 120)
 
         return NextResponse.json({ dass21List })
     } catch (error: unknown) {
@@ -35,6 +44,8 @@ export async function POST(req: NextRequest) {
                 user_id
             }
         })
+
+        await delCache('dass21:all')
 
         return NextResponse.json({ message: "Create DASS21 Success!" })
 

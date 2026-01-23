@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
+import { delCache } from "@/utils/cache";
 
 export async function POST(req: NextRequest) {
     try {
@@ -13,6 +14,8 @@ export async function POST(req: NextRequest) {
                 message
             }
         });
+
+        await delCache('notifications:dass-21:all')
 
         return NextResponse.json({ create });
 

@@ -57,9 +57,19 @@ export default function CloseDaysPage() {
     }, []);
 
     const fetchDisabledDates = async () => {
-        const res = await fetch("/api/appointments/disabled-date");
-        const data = await res.json();
-        setDisabledDates(data.disabled);
+        try {
+            const res = await fetch("/api/appointments/disabled-date");
+            const data = await res.json();
+
+            const safeData = Array.isArray(data?.disabled)
+                ? data.disabled
+                : [];
+
+            setDisabledDates(safeData);
+        } catch (err) {
+            console.error(err);
+            setDisabledDates([]);
+        }
     };
 
     const closeSingleDay = async () => {

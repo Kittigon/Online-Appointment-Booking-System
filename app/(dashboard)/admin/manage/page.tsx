@@ -1,11 +1,17 @@
 'use client'
 import { useState, useEffect } from 'react';
-import type { users } from '@prisma/client';
 import { Pencil } from 'lucide-react';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { adminResetPasswordSchema } from '@/schemas/adminResetPassword';
 
+type Users = {
+    id: number;
+    email: string;
+    name: string;
+    role: string;
+    updateAt: Date;
+}
 
 
 // แปลงวันที่เป็นภาษาไทย
@@ -20,7 +26,7 @@ const formatThaiDate = (dateStr: string): string => {
 };
 
 const AdminManage = () => {
-    const [data, setData] = useState<users[]>([]);
+    const [data, setData] = useState<Users[]>([]);
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -33,8 +39,8 @@ const AdminManage = () => {
     const fetchAppointments = async () => {
         try {
             const res = await fetch(`/api/user`)
-            const data: users[] = await res.json();
-            setData(data)
+            const data: { showuser: Users[] } = await res.json();
+            setData(data.showuser)
 
         } catch (error) {
             console.log('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error)

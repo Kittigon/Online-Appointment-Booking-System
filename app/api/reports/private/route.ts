@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
+import { getCache, setCache } from "@/utils/cache";
 
 export async function GET(req: NextRequest) {
     try {
@@ -12,14 +13,22 @@ export async function GET(req: NextRequest) {
             );
         }
 
+        const cacheKey = `reports:private:${userId}`;
+        const cached = await getCache(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
         const reportproblems = await prisma.reportproblems.findMany({
             where: {
                 userId: userId,
             },
             orderBy: {
-                createdAt: "desc", 
+                createdAt: "desc",
             },
         });
+
+        await setCache(cacheKey, reportproblems, 120);
 
         // ส่ง array กลับเสมอ
         return NextResponse.json(reportproblems, { status: 200 });

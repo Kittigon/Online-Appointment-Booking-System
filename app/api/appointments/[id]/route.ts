@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
+import { delCache } from "@/utils/cache";
 
 // =========================
 // PUT - แก้ไขการนัดหมาย
@@ -24,6 +25,8 @@ export async function PUT(
             where: { id: idNum },
             data: { date, time, description },
         })
+
+        await delCache("appointments:all")
 
         return NextResponse.json(
             { message: "Update Appointment Success!" },
@@ -93,6 +96,8 @@ export async function PATCH(
             });
         }
 
+        await delCache("appointments:all");
+
         return NextResponse.json({ message: "Updated successfully", updated });
 
     } catch (error) {
@@ -143,6 +148,8 @@ export async function DELETE(
         await prisma.appointments.delete({
             where: { id: idNum },
         })
+
+        await delCache("appointments:all")
 
         return NextResponse.json({ message: "DELETE Appointment Success!" }, { status: 200 })
     } catch (error: unknown) {

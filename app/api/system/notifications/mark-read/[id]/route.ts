@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
+import { delCache} from "@/utils/cache";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -19,6 +20,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 isRead: true,
             },
         });
+
+        await delCache(`notifications:unread:${userId}`);
+
         return NextResponse.json({ message: "Notifications marked as read" });
     } catch (error) {
         console.error("Error fetching unread notifications count:", error);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { delCache } from "@/utils/cache";
 
 const prisma = new PrismaClient();
 
@@ -52,6 +53,8 @@ export async function PATCH(
         WHERE id = ${idNum}
         `;
 
+        await delCache("documents:all");
+
         return NextResponse.json({ message: "แก้ไขข้อมูลเรียบร้อยแล้ว" });
     } catch (err) {
         console.error("Update error:", err);
@@ -76,6 +79,8 @@ export async function DELETE(
         await prisma.documents.delete({
             where: { id : idNum },
         });
+        
+        await delCache("documents:all");
 
         return NextResponse.json({ message: "ลบข้อมูลเรียบร้อยแล้ว" });
     } catch (err) {

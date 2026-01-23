@@ -160,7 +160,6 @@ const ReportProblem = () => {
                             <option>ไม่สามารถจองได้</option>
                             <option>เกิดข้อผิดพลาด</option>
                             <option>ปัญหาเกี่ยวกับบัญชีผู้ใช้</option>
-                            <option>ลืมรหัสผ่าน</option>
                             <option>อื่นๆ</option>
                         </select>
                     </div>

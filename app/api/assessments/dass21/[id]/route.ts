@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
+import { delCache} from "@/utils/cache";
 
 export async function DELETE(
     req: Request,
@@ -15,6 +16,8 @@ export async function DELETE(
         await prisma.dass_21_result.delete({
             where: { id: idNum },
         });
+
+        await delCache('dass21:all')
 
         return NextResponse.json({ message: "Delete User Success !" }, { status: 200 });
     } catch (error: unknown) {

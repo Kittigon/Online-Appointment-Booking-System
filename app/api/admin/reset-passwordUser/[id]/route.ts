@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import bcrypt from 'bcrypt'
+import { delCache } from "@/utils/cache";
 
 export async function PATCH(
     req: NextRequest,
@@ -27,6 +28,8 @@ export async function PATCH(
             where: { id: userId },
             data: { password: hashed },
         });
+
+        await delCache(`user:profile:${userId}`)
 
         return NextResponse.json({ message: 'Reset password success' });
     } catch (error) {
