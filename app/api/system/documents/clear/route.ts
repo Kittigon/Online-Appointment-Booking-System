@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import { delCache } from "@/utils/cache";
 
 export async function DELETE() {
     const supabase = createClient(
@@ -16,7 +15,6 @@ export async function DELETE() {
         return new Response(error.message, { status: 500 });
     }
 
-    await delCache("documents:all");
     return new Response(
         JSON.stringify({ message: "ลบข้อมูลทั้งหมดเรียบร้อย" }),
         { status: 200 }

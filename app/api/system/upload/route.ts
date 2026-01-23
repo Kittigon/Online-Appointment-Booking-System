@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parse } from "csv-parse/sync";
 import { PrismaClient } from "@prisma/client";
-import { getCache, setCache, delCache } from "@/utils/cache";
+
 
 const prisma = new PrismaClient();
 
 // route.ts
 export async function GET(req: NextRequest) {
     try {
-        const cacheKey = "documents:all";
-        const cached = await getCache(cacheKey);
-        if (cached) {
-            return NextResponse.json(cached);
-        }
+        // const cacheKey = "documents:all";
+        // const cached = await getCache(cacheKey);
+        // if (cached) {
+        //     return NextResponse.json(cached);
+        // }
 
         const { searchParams } = new URL(req.url);
 
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        await setCache(cacheKey, result, 60);
+        // await setCache(cacheKey, result, 60);
 
         return NextResponse.json(result, { status: 200 });
     } catch (error) {
@@ -110,6 +110,6 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    await delCache("documents:all");
+    // await delCache("documents:all");
     return NextResponse.json({ message: "เพิ่มข้อมูลเรียบร้อยแล้ว " });
 }
