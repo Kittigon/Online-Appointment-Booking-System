@@ -126,7 +126,7 @@ export default function EditProfile() {
         <>
             <div className="
             bg-[#B67CDE] w-[250px] h-10 text-white p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
-                <h1 className="text-xl font-bold  ">โปรไฟล์</h1>
+                <h1 className="text-xl font-bold  ">แก้ไขโปรไฟล์</h1>
             </div>
             <div className=" flex items-center justify-center px-4 py-10">
                 <div className="bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2">
@@ -138,7 +138,7 @@ export default function EditProfile() {
 
                     {/* ขวา: ฟอร์ม */}
                     <div className="p-8">
-                        <h2 className="text-2xl font-semibold text-center text-purple-600 mb-6">แก้ไขข้อมูลส่วนตัว</h2>
+                        <h2 className="text-2xl font-semibold text-center text-purple-600 mb-6">แก้ไขโปรไฟล์</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล</label>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect} from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { UserRound } from 'lucide-react'
 import { loginSchema } from '@/schemas/login'
@@ -123,6 +123,7 @@ const LoginPage = () => {
                             <div>
                                 <label className="block text-gray-700">อีเมล</label>
                                 <input
+                                    placeholder='ป้อนอีเมลของคุณ'
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -133,6 +134,7 @@ const LoginPage = () => {
                             <div>
                                 <label className="block text-gray-700">รหัสผ่าน</label>
                                 <input
+                                    placeholder='ป้อนรหัสผ่านของคุณ'
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}

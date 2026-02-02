@@ -215,7 +215,7 @@ const Navbar = () => {
                                     <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                                         <ul className="text-sm text-gray-700">
                                             <li>
-                                                <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">โปรไฟล์</Link>
+                                                <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">แก้ไขโปรไฟล์</Link>
                                             </li>
                                             <li>
                                                 <Link href="/changepassword" className="block px-4 py-2 hover:bg-gray-100">เปลี่ยนรหัสผ่าน</Link>
@@ -276,7 +276,7 @@ const Navbar = () => {
 
                                 {mobileDropdownOpen && (
                                     <div className="ml-4 mt-1 space-y-1 text-sm">
-                                        <Link href="/profile" className="block hover:underline">โปรไฟล์</Link>
+                                        <Link href="/profile" className="block hover:underline">แก้ไขโปรไฟล์</Link>
                                         <Link href="/changepassword" className="block hover:underline">เปลี่ยนรหัสผ่าน</Link>
                                         <Link href="/reportproblem" className="block hover:underline">รายงานปัญหา</Link>
                                         <button onClick={() => { handleLogout() }} className="block hover:underline text-red-600">ออกจากระบบ</button>
