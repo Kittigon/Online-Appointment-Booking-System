@@ -45,6 +45,7 @@ export async function GET() {
 
 interface CreateAppoinment {
     userId: number;
+    title : string
     name: string;
     date: string;
     code: string;
@@ -58,12 +59,20 @@ interface CreateAppoinment {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json() as CreateAppoinment
-        const { userId, name, date, code, phone, time, description } = body;
+        const { userId, title , name, date, code, phone, time, description } = body;
 
-        const parsed = appointmentSchema.safeParse({ name, date, code, phone, time, description });
+        const parsed = appointmentSchema.safeParse({title , name, date, code, phone, time, description });
         if (!parsed.success) {
             const errorMessages = parsed.error.issues.map(err => err.message).join("\n");
             return NextResponse.json({ message: errorMessages }, { status: 400 });
+        }
+
+        const holiday = await prisma.holiday.findFirst({
+            where: { date }
+        })
+
+        if (holiday) {
+            return NextResponse.json({ message: `ไม่สามารถจองในวันที่ ${formatThaiDate(date)} เนื่องจากเป็นวันหยุด: ${holiday.name}` }, { status: 409 })
         }
 
         const exists = await prisma.appointments.findFirst({
@@ -129,6 +138,7 @@ export async function POST(req: NextRequest) {
 
         const appointment = await prisma.appointments.create({
             data: {
+                title,
                 userId,
                 name,
                 date,

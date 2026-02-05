@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from "next/link"
 import Image from "next/image"
 import { LockKeyholeOpen, Menu, Bell } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 type User = {
     id: number;
@@ -12,6 +13,7 @@ type User = {
 }
 
 const Navbar = () => {
+    const pathname = usePathname()
     const [menuOpen, setMenuOpen] = useState(false)
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
@@ -19,6 +21,8 @@ const Navbar = () => {
     const [unreadCount, setUnreadCount] = useState(0);
 
     const FecthUser = useCallback(async () => {
+        if (pathname === '/login' || pathname === '/register') return;
+        
         try {
             const res = await fetch('/api/auth/token', {
                 method: 'GET',
@@ -37,7 +41,7 @@ const Navbar = () => {
         } catch (error) {
             console.log("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
         }
-    }, [])
+    }, [pathname])
 
     // Fetch unread notifications count
     const fetchUnreadNotifications = useCallback(async () => {
@@ -162,7 +166,7 @@ const Navbar = () => {
                             <>
                                 <li><Link href="/mentalhealth/appointment" className="hover:underline">ปฏิทินการนัดพบ</Link></li>
                                 <li><Link href="/mentalhealth/appointment-check" className="hover:underline">การนัดหมายจากผู้ใช้บริการ</Link></li>
-                                <li><Link href="/mentalhealth/evaluations" className="hover:underline">ตรวจสอบแบบประเมิน</Link></li>
+                                <li><Link href="/mentalhealth/evaluations" className="hover:underline">ประวัติการทำแบบประเมิน</Link></li>
                                 <li><Link href="/mentalhealth/close-day" className="hover:underline">ตั้งค่าวันปิดให้บริการ</Link></li>
                                 <li><Link href="/mentalhealth/history" className="hover:underline">ประวัติผู้ใช้บริการ</Link></li>
                                 <li className="relative">
@@ -248,7 +252,7 @@ const Navbar = () => {
                             <>
                                 <Link href="/mentalhealth/appointment" className="block hover:underline">ปฏิทินการนัดพบ</Link>
                                 <Link href="/mentalhealth/appointment-check" className="block hover:underline">การนัดหมายจากผู้ใช้บริการ</Link>
-                                <Link href="/mentalhealth/evaluations" className="block hover:underline">ตรวจสอบแบบประเมิน</Link>
+                                <Link href="/mentalhealth/evaluations" className="block hover:underline">ประวัติการทำแบบประเมิน</Link>
                                 <Link href="/mentalhealth/evaluations" className="block hover:underline">ตั้งค่าวันปิดให้บริการ</Link>
                                 <Link href="/mentalhealth/history" className="block hover:underline">ประวัติผู้ใช้บริการ</Link>
                             </>

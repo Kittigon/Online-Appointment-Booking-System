@@ -101,9 +101,17 @@ const MentalhealthAppointment = () => {
     const [data, setData] = useState<User | null>(null);
     // วันปิด
     const [disabledDates, setDisabledDates] = useState<string[]>([]);
+    const [holidayDates, setHolidayDates] = useState<string[]>([]);
 
     const [errors, setErrors] = useState<FormErrors>({});
 
+    const getDayType = (dateStr: string) => {
+        const day = new Date(dateStr).getDay();
+        if (holidayDates.includes(dateStr)) return "HOLIDAY";
+        if (disabledDates.includes(dateStr)) return "DISABLED";
+        if (day === 0 || day === 6) return "WEEKEND";
+        return "NORMAL";
+    };
 
     // ดึงข้อมูลผู้ใช้
     useEffect(() => {
@@ -131,11 +139,18 @@ const MentalhealthAppointment = () => {
             const res = await fetch('/api/appointments');
             const data = await res.json();
 
-            const updatedStatus: typeof status = { ...status };
+            const newStatus: Record<string, Record<string, AppointmentInfo>> = {};
+
+            date.forEach(d => {
+                newStatus[d] = {};
+                time.forEach(t => {
+                    newStatus[d][t] = null;
+                });
+            });
 
             data.showAppoinment.forEach((appoint: Appoinment) => {
-                if (updatedStatus[appoint.date] && updatedStatus[appoint.date][appoint.time] === null) {
-                    updatedStatus[appoint.date][appoint.time] = {
+                if (newStatus[appoint.date]) {
+                    newStatus[appoint.date][appoint.time] = {
                         name: appoint.name,
                         code: appoint.code,
                         phone: appoint.phone,
@@ -144,23 +159,24 @@ const MentalhealthAppointment = () => {
                 }
             });
 
-            setStatus(updatedStatus);
+            setStatus(newStatus);
         } catch (error) {
             console.error("โหลดข้อมูลล้มเหลว:", error);
             toast.error("โหลดข้อมูลล้มเหลว");
         }
-    }, [status]);
+    }, [date]);
 
     // ดึงข้อมูลการนัดหมาย
     useEffect(() => {
         if (data?.id) {
             FetchAppointment();
         }
-    }, [data, date, FetchAppointment]);
+    }, [data?.id, FetchAppointment]);
 
     // ดึงวันปิด
     useEffect(() => {
         fetchDisabledDates();
+        fetchHolidays();
     }, []);
 
 
@@ -189,39 +205,49 @@ const MentalhealthAppointment = () => {
         setDisabledDates(arr);
     };
 
+    const fetchHolidays = async () => {
+        try {
+            const res = await fetch("/api/system/holidays");
+            const data = await res.json();
+
+            const dates = Array.isArray(data)
+                ? data.map((h: { date: string }) => h.date)
+                : [];
+
+            setHolidayDates(dates);
+        } catch (err) {
+            console.error("โหลดวันหยุดไม่สำเร็จ", err);
+        }
+    };
+
+
     // จัดการการเลือกวันและเวลา
     const handleSelect = (date: string, time: string) => {
-        if (disabledDates.includes(date)) {
-            toast.error("ไวันนี้ถูกปิดไม่สามารถจองได้");
+        const type = getDayType(date);
+
+        if (type === "HOLIDAY") {
+            toast.error("วันหยุดนักขัตฤกษ์");
+            return;
+        }
+        if (type === "DISABLED") {
+            toast.error("วันนี้ปิดทำการ");
+            return;
+        }
+        if (type === "WEEKEND") {
+            toast.error("วันเสาร์–อาทิตย์");
             return;
         }
 
         const booking = status[date]?.[time];
-
         if (booking) {
             setSelectedBookedInfo({ ...booking, date, time });
-            return;
-        }
-
-        const now = new Date();
-        const [h, m] = time.split(":").map(Number);
-        const selected = new Date(date);
-        selected.setHours(h, m, 0, 0);
-
-        const dayOfWeek = selected.getDay(); // 0 = Sunday, 6 = Saturday
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-            toast.error("กรุณาเลือกวันจันทร์-ศุกร์ เท่านั้น");
-            return;
-        }
-
-        if (selected.getTime() - now.getTime() < 2 * 60 * 60 * 1000) {
-            toast.error("กรุณาจองล่วงหน้าอย่างน้อย 2 ชั่วโมง");
             return;
         }
 
         setSelectedDate(date);
         setSelectedTime(time);
     };
+
 
     const handleSave = async () => {
         try {
@@ -279,7 +305,7 @@ const MentalhealthAppointment = () => {
                         }
                     }
                 }));
-                
+
                 toast.success(`จองสำเร็จ: ${formatThaiDate(selectedDate)} เวลา ${selectedTime} โดย ${name}`);
                 setSelectedDate("");
                 setSelectedTime("");
@@ -359,59 +385,59 @@ const MentalhealthAppointment = () => {
                             ));
                         })()}
 
-                        {/* Loop วันที่ */}
                         {date.map((dateStr) => {
+                            const dayType = getDayType(dateStr);
                             const currentDate = new Date(dateStr);
                             const dayNum = currentDate.getDate();
-                            const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
-                            const isDisabled = disabledDates.includes(dateStr); // วันปิดทำการพิเศษ
 
                             return (
                                 <div
                                     key={dateStr}
                                     className={`
-                        bg-white min-h-[120px] p-2 flex flex-col gap-1 relative group hover:bg-gray-50 transition-colors
-                        ${(isWeekend || isDisabled) ? 'bg-gray-50' : ''}
-                    `}
+                bg-white min-h-[120px] p-2 flex flex-col gap-1
+                ${dayType !== "NORMAL" ? "bg-gray-50" : ""}
+            `}
                                 >
                                     {/* เลขวันที่ */}
                                     <div className="flex justify-between items-center mb-1">
                                         <span className={`
-                            text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full
-                            ${dateStr === new Date().toISOString().split('T')[0]
-                                                ? 'bg-purple-600 text-white'
-                                                : 'text-gray-700'}
-                        `}>
+                    text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full
+                    ${dateStr === new Date().toISOString().split("T")[0]
+                                                ? "bg-purple-600 text-white"
+                                                : "text-gray-700"}
+                `}>
                                             {dayNum}
                                         </span>
-                                        {(isWeekend || isDisabled) && (
-                                            <span className="text-[10px] text-red-400 font-light">
-                                                {isDisabled ? 'ปิด' : 'วันหยุด'}
-                                            </span>
+
+                                        {dayType === "HOLIDAY" && (
+                                            <span className="text-[10px] text-orange-500">วันหยุด</span>
+                                        )}
+                                        {dayType === "DISABLED" && (
+                                            <span className="text-[10px] text-red-500">ปิด</span>
+                                        )}
+                                        {dayType === "WEEKEND" && (
+                                            <span className="text-[10px] text-gray-400">หยุด</span>
                                         )}
                                     </div>
 
-                                    {/* รายการเวลา (Slots) */}
-                                    <div className="flex flex-col gap-1 overflow-y-auto max-h-[100px] scrollbar-hide">
-                                        {(!isWeekend && !isDisabled) && time.map((t) => {
+                                    {/* เวลา */}
+                                    <div className="flex flex-col gap-1">
+                                        {dayType === "NORMAL" && time.map(t => {
                                             const booking = status[dateStr]?.[t];
                                             const isBooked = !!booking;
-                                            const isSelected = selectedDate === dateStr && selectedTime === t;
 
                                             return (
                                                 <button
-                                                    key={`${dateStr}-${t}`}
+                                                    key={t}
                                                     onClick={() => handleSelect(dateStr, t)}
                                                     className={`
-        text-[10px] px-2 py-1 rounded text-left truncate w-full transition-all
-        ${isBooked
-                                                            ? 'bg-gray-300 text-gray-600 line-through cursor-pointer hover:bg-gray-200'
-                                                            : isSelected
-                                                                ? 'bg-purple-600 text-white shadow-md'
-                                                                : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-100'}
-    `}
+                                text-[10px] px-2 py-1 rounded text-left
+                                ${isBooked
+                                                            ? "bg-gray-300 text-gray-600"
+                                                            : "bg-purple-50 text-purple-700 hover:bg-purple-100"}
+                            `}
                                                 >
-                                                    {isBooked ? `จองแล้ว` : `${t}`}
+                                                    {isBooked ? "จองแล้ว" : t}
                                                 </button>
                                             );
                                         })}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { UserRound } from 'lucide-react'
 import { loginSchema } from '@/schemas/login'
@@ -26,6 +26,56 @@ const LoginPage = () => {
         "กลับมาเติมพลังใจกันเถอะ 🌱"
     ]
     const [msgIndex, setMsgIndex] = useState(0)
+
+    const isChecked = useRef(false);
+
+    useEffect(() => {
+        // ✅ ถ้าเคยเช็คไปแล้วในรอบ Render นี้ ให้หยุด (แก้ปัญหา React Strict Mode)
+        if (isChecked.current) return;
+        isChecked.current = true;
+
+        const checkAutoLogin = async () => {
+            try {
+                const res = await fetch('/api/auth/token', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data?.user) {
+                        sessionStorage.removeItem("login_retry_flag");
+                        // Redirect logic...
+                        if (data.user.role === "USER") window.location.href = "/user/appointment";
+                        else if (data.user.role === "MENTALHEALTH") window.location.href = "/mentalhealth/appointment";
+                        else if (data.user.role === "ADMIN") window.location.href = "/admin/dashboard";
+                    }
+                } else {
+                    // ⚠️ Logic การ Reload
+                    const hasRetried = sessionStorage.getItem("login_retry_flag");
+
+                    // ต้องเช็คว่า response ไม่ใช่ 200 และยังไม่เคย reload
+                    if (!hasRetried) {
+                        console.log("Auto-login check failed. Reloading page once...");
+                        sessionStorage.setItem("login_retry_flag", "true");
+
+                        // ✅ ใส่ Timeout เล็กน้อยเพื่อให้ sessionStorage บันทึกทัน
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 100);
+                    } else {
+                        console.log("Reloaded already. Clear flag.");
+                        sessionStorage.removeItem("login_retry_flag");
+                    }
+                }
+            } catch (error) {
+                console.error("Error checking token:", error);
+                // logic error handling...
+            }
+        };
+
+        checkAutoLogin();
+    }, []); // Empty dependency array
 
     useEffect(() => {
         const interval = setInterval(() => {

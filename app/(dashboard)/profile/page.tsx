@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from "react-hot-toast";
+import { updateProfileSchema } from '@/schemas/updateProfileSchema';
 
 
 type User = {
@@ -18,7 +19,7 @@ export default function EditProfile() {
         name: '',
         email: '',
         gender: '',
-        age: 0,
+        age: '',
         phone: '',
         code: ''
     });
@@ -71,37 +72,56 @@ export default function EditProfile() {
         loadData()
     }, [loadData])
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
         const { name, value } = e.target;
+
         setFormdata(prev => ({
             ...prev,
-            [name]: name === 'age' ? Number(value) : value
+            [name]: value
         }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // console.log('Saving profile:', formdata);
         const id = data?.id;
+
+        // แปลงค่าว่าง
+        const cleanedData = {
+            name: formdata.name,
+            email: formdata.email,
+            gender: formdata.gender || undefined,
+            phone: formdata.phone || undefined,
+            code: formdata.code || undefined,
+            age: formdata.age
+                ? Number(formdata.age)
+                : undefined,
+        };
+
+        const parsed = updateProfileSchema.safeParse(cleanedData);
+
+        if (!parsed.success) {
+            toast.error(parsed.error.issues[0]?.message || "ข้อมูลไม่ถูกต้อง");
+            return;
+        }
+
         try {
             const res = await fetch('/api/user/' + id, {
                 method: "PUT",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formdata)
-            })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parsed.data),
+            });
 
             if (res.ok) {
-                toast.success('แก้ไขข้อมูลสำเร็จ !!!')
+                toast.success('แก้ไขข้อมูลสำเร็จ !!!');
                 loadData();
             }
-
-        } catch (error) {
-            console.log('เกิดข้อผิดพลาดในการแก้ไขข้อมูล : ', error)
-            toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล')
+        } catch {
+            toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
         }
     };
+
 
     if (loading) {
         return (
@@ -203,7 +223,8 @@ export default function EditProfile() {
                                 <input
                                     type="number"
                                     name="age"
-                                    min="18"
+                                    min="7"
+                                    max="70"
                                     value={formdata.age || ''}
                                     onChange={handleChange}
                                     className="mt-1 p-2 block w-full rounded-xl border-gray-300 shadow-sm focus:ring-purple-500 focus:border-purple-500"

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from "react-hot-toast";
+import { updateProfileSchema } from '@/schemas/updateProfileSchema';
 
 
 type User = {
@@ -18,7 +19,7 @@ export default function EditProfile() {
         name: '',
         email: '',
         gender: '',
-        age: 0,
+        age: '',
         phone: '',
         code: ''
     });
@@ -71,42 +72,61 @@ export default function EditProfile() {
         loadData()
     }, [loadData])
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
         const { name, value } = e.target;
+
         setFormdata(prev => ({
             ...prev,
-            [name]: name === 'age' ? Number(value) : value
+            [name]: value
         }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // console.log('Saving profile:', formdata);
         const id = data?.id;
+
+        // แปลงค่าว่าง
+        const cleanedData = {
+            name: formdata.name,
+            email: formdata.email,
+            gender: formdata.gender || undefined,
+            phone: formdata.phone || undefined,
+            code: formdata.code || undefined,
+            age: formdata.age
+                ? Number(formdata.age)
+                : undefined,
+        };
+
+        const parsed = updateProfileSchema.safeParse(cleanedData);
+
+        if (!parsed.success) {
+            toast.error(parsed.error.issues[0]?.message || "ข้อมูลไม่ถูกต้อง");
+            return;
+        }
+
         try {
             const res = await fetch('/api/user/' + id, {
                 method: "PUT",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formdata)
-            })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parsed.data),
+            });
 
             if (res.ok) {
-                toast.success('แก้ไขข้อมูลสำเร็จ !!!')
+                toast.success('แก้ไขข้อมูลสำเร็จ !!!');
                 loadData();
             }
-
-        } catch (error) {
-            console.log('เกิดข้อผิดพลาดในการแก้ไขข้อมูล : ', error)
-            toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล')
+        } catch {
+            toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
         }
     };
+
 
     if (loading) {
         return (
             <>
-                <h2 className="text-3xl font-bold text-slate-800 pt-6 pl-6 mt-3 ml-2">แก้ไขข้อมูลส่วนตัว</h2>
+                <h2 className="text-3xl font-bold text-slate-800 pt-6 pl-6 mt-3 ml-2">แก้ไขโปรไฟล์</h2>
                 <div className=" flex items-center justify-center">
                     <div className="flex flex-col items-center justify-center py-10 text-gray-400">
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-3"></div>
@@ -117,10 +137,11 @@ export default function EditProfile() {
         );
     }
 
+    console.log('formdata:', formdata);
+
     return (
         <>
-            <h2 className="text-3xl font-bold text-slate-800 pt-6 pl-6 mt-3 ml-2">แก้ไขข้อมูลส่วนตัว</h2>
-
+            <h2 className="text-3xl font-bold text-slate-800 pt-6 pl-6 mt-3 ml-2">แก้ไขโปรไฟล์</h2>
             <div className=" flex items-center justify-center px-4 py-10">
                 <div className="bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2">
                     {/* ซ้าย: welcome */}
@@ -131,7 +152,7 @@ export default function EditProfile() {
 
                     {/* ขวา: ฟอร์ม */}
                     <div className="p-8">
-                        <h2 className="text-2xl font-semibold text-center text-purple-600 mb-6">แก้ไขข้อมูลส่วนตัว</h2>
+                        <h2 className="text-2xl font-semibold text-center text-purple-600 mb-6">แก้ไขโปรไฟล์</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล</label>

@@ -15,14 +15,14 @@ model users {
   name          String
   age           Int?
   gender        String?
-  phone         String?          
-  code          String?          
   role          Role             @default(USER)
   createdAt     DateTime         @default(now())
   updateAt      DateTime         @default(now())
+  code          String?
+  phone         String?
+  notifications Notifications[]
   appointments  appointments[]
   reports       reportproblems[]
-  notifications Notifications[]
 }
 
 model appointments {
@@ -32,14 +32,15 @@ model appointments {
   time          String
   description   String?
   status        Status          @default(PENDING)
-  cancelReason  String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @default(now())
   code          String
   phone         String
   name          String
-  user          users           @relation(fields: [userId], references: [id])
+  cancelReason  String?
+  title         String          @default("นัดหมายเข้าปรึกษาผู้เชี่ยวชาญด้านสุขภาพจิต")
   notifications Notifications[]
+  user          users           @relation(fields: [userId], references: [id])
 }
 
 model dass_21_result {
@@ -52,8 +53,8 @@ model dass_21_result {
   anxiety_level    String?
   stress_level     String?
   created_at       DateTime?       @default(now()) @db.Timestamp(6)
-  user_consent     user_consent?   @relation(fields: [user_id], references: [line_user_id], onDelete: Cascade, onUpdate: NoAction)
   notifications    Notifications[]
+  user_consent     user_consent?   @relation(fields: [user_id], references: [line_user_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model documents {
@@ -70,8 +71,8 @@ model reportproblems {
   status        Reportstatus    @default(NEW)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @default(now())
-  user          users           @relation(fields: [userId], references: [id])
   notifications Notifications[]
+  user          users           @relation(fields: [userId], references: [id])
 }
 
 model chat_history {
@@ -93,43 +94,42 @@ model user_consent {
   allow_greeting Boolean?         @default(false)
   last_greeted   DateTime?        @db.Timestamp(6)
   tone_style     String?          @default("friendly") @db.VarChar(20)
+  notifications  Notifications[]
   chat_history   chat_history[]
   dass_21_result dass_21_result[]
-  notifications  Notifications[]
 }
 
 model DisabledDate {
   id        Int      @id @default(autoincrement())
-  date      String // yyyy-mm-dd
+  date      String
   createdAt DateTime @default(now())
 }
 
 model Notifications {
-  id Int @id @default(autoincrement())
-
-  userId Int?
-  user   users? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  line_user_id String?
-  lineUser     user_consent? @relation(fields: [line_user_id], references: [line_user_id], onDelete: Cascade)
-
-  type      String
-  title     String
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  // กรณีแจ้งเตือนเรื่องนัดหมาย
+  id            Int             @id @default(autoincrement())
+  userId        Int?
+  line_user_id  String?
+  type          String
+  title         String
+  message       String
+  isRead        Boolean         @default(false)
+  createdAt     DateTime        @default(now())
   appointmentId Int?
-  appointment   appointments? @relation(fields: [appointmentId], references: [id])
+  dass21Id      Int?
+  reportId      Int?
+  appointment   appointments?   @relation(fields: [appointmentId], references: [id])
+  dass21        dass_21_result? @relation(fields: [dass21Id], references: [id])
+  lineUser      user_consent?   @relation(fields: [line_user_id], references: [line_user_id], onDelete: Cascade)
+  report        reportproblems? @relation(fields: [reportId], references: [id])
+  user          users?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  // กรณีแจ้งเตือนเรื่องความเสี่ยง (DASS-21)
-  dass21Id Int?
-  dass21   dass_21_result? @relation(fields: [dass21Id], references: [id])
-
-  // กรณีแจ้งเตือนเรื่องแจ้งปัญหา
-  reportId Int?
-  report   reportproblems? @relation(fields: [reportId], references: [id])
+model Holiday {
+  id        Int         @id @default(autoincrement())
+  date      String      @unique
+  name      String
+  type      HolidayType
+  createdAt DateTime    @default(now())
 }
 
 enum Reportstatus {
@@ -148,6 +148,13 @@ enum Role {
 enum Status {
   PENDING
   CONFIRMED
-  COMPLETED
   CANCELLED
+  COMPLETED
+}
+
+enum HolidayType {
+  NATIONAL
+  RELIGIOUS
+  SPECIAL
+  OTHER
 }

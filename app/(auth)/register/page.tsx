@@ -9,8 +9,6 @@ const RegisterPage = () => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [gender, setGender] = useState("")
-    const [age, setAge] = useState("")
 
     const messages = [
         "ยินดีต้อนรับสู่พื้นที่ปลอดภัย 💜",
@@ -35,9 +33,8 @@ const RegisterPage = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        // console.log({ name, email, password , gender, age})
 
-        const parsed = registerSchema.safeParse({ name, email, password, gender, age });
+        const parsed = registerSchema.safeParse({ name, email, password});
 
         if (!parsed.success) {
             toast.error(parsed.error.issues[0].message);
@@ -50,7 +47,7 @@ const RegisterPage = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ name, email, password, gender, age: Number(age) }),
+                body: JSON.stringify({ name, email, password }),
             })
 
             const data = await res.json()
@@ -62,8 +59,6 @@ const RegisterPage = () => {
                 setName("")
                 setEmail("")
                 setPassword("")
-                setGender("")
-                setAge("")
 
             } else {
                 // Handle errors
@@ -132,32 +127,6 @@ const RegisterPage = () => {
                                     value={password}
                                     placeholder='ป้อนรหัสผ่านของคุณ'
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700">เพศ</label>
-                                <select
-                                    name="gender"
-                                    value={gender}
-                                    onChange={(e) => setGender(e.target.value)}
-                                    className="mt-1 p-2 block w-full rounded-xl border-gray-300 shadow-sm focus:ring-purple-500 focus:border-purple-500"
-                                >
-                                    <option value="">-- กรุณาเลือกเพศ --</option>
-                                    <option value="ชาย">ชาย</option>
-                                    <option value="หญิง">หญิง</option>
-                                    <option value="อื่นๆ">อื่นๆ</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700">อายุ</label>
-                                <input
-                                    type="text"
-                                    value={age}
-                                    placeholder='ป้อนอายุของคุณ'
-                                    onChange={(e) => setAge(e.target.value)}
                                     className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
                                 />
                             </div>

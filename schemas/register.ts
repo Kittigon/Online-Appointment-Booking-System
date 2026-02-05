@@ -19,22 +19,6 @@ export const registerSchema = z.object({
         .regex(/[a-z]/, "รหัสผ่านต้องมีตัวพิมพ์เล็ก")
         .regex(/[0-9]/, "รหัสผ่านต้องมีตัวเลข"),
 
-    gender: z
-        .string()
-        .optional()
-        .refine(
-            (val) => !val || ["ชาย", "หญิง", "อื่นๆ"].includes(val),
-            { message: "ค่าเพศไม่ถูกต้อง" }
-        ),
-
-    age: z.coerce
-        .number()
-        .refine((val) => !isNaN(val), {
-            message: "อายุต้องเป็นตัวเลข",
-        })
-        .int("อายุต้องเป็นจำนวนเต็ม")
-        .min(18, "อายุต้องไม่ต่ำกว่า 18 ปี")
-        .max(120, "อายุต้องไม่มากกว่าอยู่ระหว่าง 120 ปี"),
 }).strict();
 
 export type RegisterInput = z.infer<typeof registerSchema>;

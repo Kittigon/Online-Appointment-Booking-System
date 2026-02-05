@@ -12,7 +12,6 @@ import {
     KeyRound,
     LogOut,
     Menu,
-    MonitorX,
     File
 } from "lucide-react";
 import Link from "next/link";
@@ -91,17 +90,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     </Link>
 
                     <Link
-                        href="/admin/close-day"
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-100 text-slate-700 hover:text-purple-700 transition"
-                    >
-                        <MonitorX className="w-5 h-5" /> ตั้งค่าวันปิดให้บริการ
-                    </Link>
-
-                    <Link
                         href="/admin/evaluations"
                         className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-100 text-slate-700 hover:text-purple-700 transition"
                     >
-                        <ClipboardList className="w-5 h-5" /> การทำแบบประเมิน
+                        <ClipboardList className="w-5 h-5" /> ประวัติการทำแบบประเมิน
                     </Link>
 
                     <Link
