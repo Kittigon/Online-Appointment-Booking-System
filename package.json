@@ -31,7 +31,7 @@
     "zod": "^4.0.5"
   },
   "prisma": {
-  "seed": "node prisma/seed/holiday.js"
+    "seed": "node prisma/seed/holiday.js"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

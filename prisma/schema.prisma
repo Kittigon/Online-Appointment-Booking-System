@@ -63,10 +63,9 @@ model documents {
   embedding Unsupported("vector")?
 }
 
-// For handling document processing jobs
 model DocumentJob {
   id        String   @id @default(uuid())
-  status    String   @default("PENDING") // PENDING | PROCESSING | DONE | ERROR
+  status    String   @default("PENDING")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
