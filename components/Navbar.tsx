@@ -22,7 +22,7 @@ const Navbar = () => {
 
     const FecthUser = useCallback(async () => {
         if (pathname === '/login' || pathname === '/register') return;
-        
+
         try {
             const res = await fetch('/api/auth/token', {
                 method: 'GET',
@@ -246,6 +246,18 @@ const Navbar = () => {
                                 <Link href="/user/appointment" className="block hover:underline">ตารางนัดหมาย</Link>
                                 <Link href="/user/infocheck" className="block hover:underline">ตรวจสอบการนัดหมาย</Link>
                                 <Link href="/user/history" className="block hover:underline">ประวัติการนัดหมาย</Link>
+                                <Link href="/user/notifications" className="relative block hover:underline">
+                                    การแจ้งเตือน
+                                    {unreadCount > 0 && (
+                                        <span className="
+                                            ml-2 inline-flex items-center justify-center
+                                            bg-red-500 text-white text-xs
+                                            rounded-full w-5 h-5
+                                        ">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </Link>
                             </>
                         )}
                         {data?.role === "MENTALHEALTH" && (
@@ -255,6 +267,15 @@ const Navbar = () => {
                                 <Link href="/mentalhealth/evaluations" className="block hover:underline">ประวัติการทำแบบประเมิน</Link>
                                 <Link href="/mentalhealth/evaluations" className="block hover:underline">ตั้งค่าวันปิดให้บริการ</Link>
                                 <Link href="/mentalhealth/history" className="block hover:underline">ประวัติผู้ใช้บริการ</Link>
+                                <Link href="/mentalhealth/notifications" className="relative block hover:underline">
+                                    การแจ้งเตือน
+                                    {unreadCount > 0 && (
+                                        <span className="ml-2 inline-flex items-center justify-center bg-red-500 text-white text-xs rounded-full w-5 h-5">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </Link>
+
                             </>
                         )}
                         {data?.role === "ADMIN" && (

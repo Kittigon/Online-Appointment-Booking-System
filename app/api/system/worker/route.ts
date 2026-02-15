@@ -7,8 +7,14 @@ const BATCH_SIZE = 5;
 export async function POST(req: NextRequest) {
     const { jobId, records } = await req.json();
 
+    // console.log("Worker started:", {
+    //     jobId,
+    //     recordsLength: records?.length,
+    // });
+
     try {
-        await prisma.documentJob.update({
+        // เริ่มงาน
+        await prisma.documentJob.updateMany({
             where: { id: jobId },
             data: { status: "PROCESSING" },
         });
@@ -39,14 +45,15 @@ export async function POST(req: NextRequest) {
                     const embeddingStr = `[${embedding.join(",")}]`;
 
                     await prisma.$executeRaw`
-            INSERT INTO documents (content, embedding)
-            VALUES (${content}, ${embeddingStr}::vector)
-        `;
+                        INSERT INTO documents (content, embedding)
+                        VALUES (${content}, ${embeddingStr}::vector)
+                    `;
                 })
             );
         }
 
-        await prisma.documentJob.update({
+        // งานเสร็จ
+        await prisma.documentJob.updateMany({
             where: { id: jobId },
             data: { status: "DONE" },
         });
@@ -55,7 +62,8 @@ export async function POST(req: NextRequest) {
     } catch (err) {
         console.error("Worker error:", err);
 
-        await prisma.documentJob.update({
+        // ถ้าพัง
+        await prisma.documentJob.updateMany({
             where: { id: jobId },
             data: { status: "ERROR" },
         });
