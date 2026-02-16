@@ -6,9 +6,9 @@ import { registerSchema } from "@/schemas/register";
 
 export async function POST(req: NextRequest) {
     const body = await req.json() as users;
-    const { email, password, name, gender, age } = body;
+    const { email, password, name } = body;
 
-    const parsed = registerSchema.safeParse({ name, email, password, gender, age });
+    const parsed = registerSchema.safeParse({ name, email, password });
 
     if (!parsed.success) {
         return Response.json(
@@ -36,10 +36,7 @@ export async function POST(req: NextRequest) {
             data: {
                 email: email,
                 password: hashPassword,
-                name: name,
-                gender,
-                age
-
+                name: name
             }
         })
 
