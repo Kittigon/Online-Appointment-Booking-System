@@ -166,7 +166,7 @@ const Navbar = () => {
                             <>
                                 <li><Link href="/mentalhealth/appointment" className="hover:underline">ปฏิทินการนัดพบ</Link></li>
                                 <li><Link href="/mentalhealth/appointment-check" className="hover:underline">การนัดหมายจากผู้ใช้บริการ</Link></li>
-                                <li><Link href="/mentalhealth/evaluations" className="hover:underline">ประวัติการทำแบบประเมิน</Link></li>
+                                <li><Link href="/mentalhealth/evaluations" className="hover:underline">สรุปผลแบบประเมิน DASS-21</Link></li>
                                 <li><Link href="/mentalhealth/close-day" className="hover:underline">ตั้งค่าวันปิดให้บริการ</Link></li>
                                 <li><Link href="/mentalhealth/history" className="hover:underline">ประวัติผู้ใช้บริการ</Link></li>
                                 <li className="relative">
@@ -264,7 +264,7 @@ const Navbar = () => {
                             <>
                                 <Link href="/mentalhealth/appointment" className="block hover:underline">ปฏิทินการนัดพบ</Link>
                                 <Link href="/mentalhealth/appointment-check" className="block hover:underline">การนัดหมายจากผู้ใช้บริการ</Link>
-                                <Link href="/mentalhealth/evaluations" className="block hover:underline">ประวัติการทำแบบประเมิน</Link>
+                                <Link href="/mentalhealth/evaluations" className="block hover:underline">สรุปผลแบบประเมิน DASS-21</Link>
                                 <Link href="/mentalhealth/evaluations" className="block hover:underline">ตั้งค่าวันปิดให้บริการ</Link>
                                 <Link href="/mentalhealth/history" className="block hover:underline">ประวัติผู้ใช้บริการ</Link>
                                 <Link href="/mentalhealth/notifications" className="relative block hover:underline">

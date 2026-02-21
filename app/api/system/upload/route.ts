@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "ไม่พบไฟล์" }, { status: 400 });
     }
 
+    // อ่านไฟล์ CSV และแปลงเป็น array ของ object
     const csvText = await file.text();
     const records: Record<string, string>[] = parse(csvText, {
         columns: true,

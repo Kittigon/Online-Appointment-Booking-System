@@ -44,17 +44,18 @@ model appointments {
 }
 
 model dass_21_result {
-  id               Int             @id @default(autoincrement())
-  user_id          String?         @db.VarChar(100)
+  id               Int              @id @default(autoincrement())
+  user_id          String?          @db.VarChar(100)
   depression_score Int?
   anxiety_score    Int?
   stress_score     Int?
   depression_level String?
   anxiety_level    String?
   stress_level     String?
-  created_at       DateTime?       @default(now()) @db.Timestamp(6)
+  created_at       DateTime?        @default(now()) @db.Timestamp(6)
   notifications    Notifications[]
-  user_consent     user_consent?   @relation(fields: [user_id], references: [line_user_id], onDelete: Cascade, onUpdate: NoAction)
+  dass_21_answer   dass_21_answer[]
+  user_consent     user_consent?    @relation(fields: [user_id], references: [line_user_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model documents {
@@ -103,6 +104,7 @@ model user_consent {
   tone_style     String?          @default("friendly") @db.VarChar(20)
   notifications  Notifications[]
   chat_history   chat_history[]
+  dass_21_log    dass_21_log[]
   dass_21_result dass_21_result[]
 }
 
@@ -137,6 +139,22 @@ model Holiday {
   name      String
   type      HolidayType
   createdAt DateTime    @default(now())
+}
+
+model dass_21_answer {
+  id              Int            @id @default(autoincrement())
+  result_id       Int
+  question_number Int
+  question_type   String         @db.VarChar(1)
+  score           Int
+  dass_21_result  dass_21_result @relation(fields: [result_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model dass_21_log {
+  id           Int          @id @default(autoincrement())
+  user_id      String       @db.VarChar(100)
+  taken_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  user_consent user_consent @relation(fields: [user_id], references: [line_user_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum Reportstatus {

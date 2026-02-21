@@ -1,109 +1,65 @@
 'use client';
 import { useState, useEffect } from "react";
-import {toast} from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
-interface UserConsent {
+interface SummaryItem {
+    user_id: string;
     name?: string;
     phone?: string;
     student_id?: string;
+    total: number;
+    lastDate?: string;
 }
 
-export interface Dass21Result {
-    id: number;
-    user_id?: string;
-    depression_score?: number;
-    anxiety_score?: number;
-    stress_score?: number;
-    depression_level?: string;
-    anxiety_level?: string;
-    stress_level?: string;
-    created_at?: string;
-    user_consent?: UserConsent;
-}
+const ITEMS_PER_PAGE = 5;
 
-// แปลงวันที่เป็นภาษาไทย
 const formatThaiDate = (dateStr: string): string => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('th-TH', {
         day: 'numeric',
         month: 'short',
         year: '2-digit',
-        weekday: 'long'
     });
 };
 
 const MentalhealthEvaluations = () => {
-    const [data, setData] = useState<Dass21Result[]>([]);
+    const router = useRouter();
+    const [data, setData] = useState<SummaryItem[]>([]);
     const [loading, setLoading] = useState(true);
-
-    // 1. เพิ่ม State สำหรับการกรอง
-    const [filterHighRisk, setFilterHighRisk] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         loadData();
-    }, [])
+    }, []);
 
     const loadData = async () => {
         try {
             setLoading(true);
             const res = await fetch('/api/assessments/dass21');
-            const data = await res.json();
-            setData(data.dass21List);
-        } catch (error) {
-            console.log("โหลดข้อมูลล้มเหลว:", error);
+            const json = await res.json();
+            setData(json.result || []);
+        } catch {
             toast.error('โหลดข้อมูลล้มเหลว');
-
         } finally {
             setLoading(false);
         }
     };
 
-    const handleRemove = async (id: number) => {
-        if (!confirm(`คุณต้องการลบข้อมูล ID: ${id} ใช่หรือไม่?`)) {
-            return;
-        }
+    const totalAssessments = data.reduce((sum, item) => sum + item.total, 0);
 
-        try {
-            const res = await fetch(`/api/assessments/dass21/${id}`, {
-                method: "DELETE",
-            });
-
-            if (res.ok) {
-                toast.success('ลบข้อมูลสำเร็จ');
-                loadData();
-            } else {
-                toast.error('เกิดข้อผิดพลาดในการลบข้อมูล');
-            }
-
-        } catch (error) {
-            console.log("ลบข้อมูลล้มเหลว:", error);
-            toast.error('ลบข้อมูลล้มเหลว');
-        }
-    }
-
-    // 2. Logic การกรองข้อมูล
-    // เงื่อนไข: ถ้าเลือกกรอง จะหาคำว่า "รุนแรง" หรือ "Severe" ในระดับคะแนนใดคะแนนหนึ่ง
-    const filteredData = data.filter(item => {
-        if (!filterHighRisk) return true; // ถ้าไม่ได้ติ๊กเลือก ให้แสดงทั้งหมด
-
-        const checkRisk = (level?: string) => {
-            if (!level) return false;
-            // เช็คว่ามีคำว่า รุนแรง หรือ Severe หรือไม่ (ครอบคลุม รุนแรงมาก)
-            return level.includes('รุนแรง') || level.includes('Severe');
-        };
-
-        return checkRisk(item.depression_level) ||
-            checkRisk(item.anxiety_level) ||
-            checkRisk(item.stress_level);
-    });
+    const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const currentData = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     return (
         <>
-            <div className="bg-[#B67CDE] w-[300px] h-10 text-white p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
-                <h1 className="text-xl font-bold">ตรวจสอบแบบประเมิน</h1>
+            <div className="bg-[#B67CDE] w-[260px] sm:w-[300px] h-10 text-white p-6 sm:p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
+                <h1 className="text-lg sm:text-xl font-bold">
+                    สรุปผลแบบประเมิน DASS-21
+                </h1>
             </div>
 
-            {/* Loading UI */}
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-10 text-gray-400">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500 mb-3"></div>
@@ -114,91 +70,120 @@ const MentalhealthEvaluations = () => {
                     <p className="text-lg">ไม่พบข้อมูลแบบประเมิน</p>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center mt-10 px-4 w-full">
+                <div className="flex flex-col items-center mt-10 px-4 w-full">
 
-                    {/* 3. ส่วนควบคุมตัวกรอง (Filter UI) */}
-                    <div className="w-full max-w-[1200px] mb-4 flex justify-end">
-                        <label className={`
-                            flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all border
-                            ${filterHighRisk
-                                ? 'bg-red-50 border-red-200 text-red-600 shadow-sm'
-                                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}
-                        `}>
-                            <input
-                                type="checkbox"
-                                className="w-5 h-5 accent-red-500"
-                                checked={filterHighRisk}
-                                onChange={(e) => setFilterHighRisk(e.target.checked)}
-                            />
-                            <span className="font-medium select-none">แสดงเฉพาะกลุ่มเสี่ยงสูง (รุนแรง)</span>
-                        </label>
+                    {/* Dashboard Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-[1200px] mb-8">
+                        <div className="bg-white p-6 rounded-xl shadow-md text-center">
+                            <p className="text-gray-500 text-sm">จำนวนผู้ทำแบบประเมิน</p>
+                            <p className="text-2xl sm:text-3xl font-bold text-purple-600 mt-2">
+                                {data.length}
+                            </p>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-xl shadow-md text-center">
+                            <p className="text-gray-500 text-sm">จำนวนครั้งทั้งหมด</p>
+                            <p className="text-2xl sm:text-3xl font-bold text-blue-600 mt-2">
+                                {totalAssessments}
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="bg-white w-full rounded-lg shadow-lg p-5 overflow-x-auto">
-                        <table className="min-w-[600px] w-full text-left">
+                    {/* ✅ Desktop Table */}
+                    <div className="hidden md:block bg-white w-full max-w-[1200px] rounded-xl shadow-lg p-6 overflow-x-auto">
+                        <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-700 text-center">
-                                    <th className="border-b-2 border-gray-300 p-2">ID</th>
-                                    <th className="border-b-2 border-gray-300 p-2">ชื่อ</th>
-                                    <th className="border-b-2 border-gray-300 p-2">เบอร์โทร</th>
-                                    <th className="border-b-2 border-gray-300 p-2">ภาวะซึมเศร้า</th>
-                                    <th className="border-b-2 border-gray-300 p-2">ภาวะวิตกกังวล</th>
-                                    <th className="border-b-2 border-gray-300 p-2">ภาวะเครียด</th>
-                                    <th className="border-b-2 border-gray-300 p-2">วันที่ทำแบบทดสอบ</th>
-                                    <th className="border-b-2 border-gray-300 p-2">จัดการ</th>
+                                    <th className="border-b p-3">รหัสนักศึกษา</th>
+                                    <th className="border-b p-3">ชื่อ</th>
+                                    <th className="border-b p-3">เบอร์โทร</th>
+                                    <th className="border-b p-3">จำนวนครั้ง</th>
+                                    <th className="border-b p-3">ครั้งล่าสุด</th>
+                                    <th className="border-b p-3">จัดการ</th>
                                 </tr>
                             </thead>
-
                             <tbody>
-                                {/* 4. เปลี่ยนจาก data.map เป็น filteredData.map */}
-                                {filteredData.length > 0 ? (
-                                    filteredData.map((item) => (
-                                        <tr key={item.id} className="text-gray-700 text-center hover:bg-gray-50">
-                                            <td className="border-b border-gray-200 p-2">{item.user_consent?.student_id}</td>
-                                            <td className="border-b border-gray-200 p-2">{item.user_consent?.name}</td>
-                                            <td className="border-b border-gray-200 p-2">{item.user_consent?.phone}</td>
-
-                                            {/* เพิ่มสีแดงถ้ามีความเสี่ยงสูงในช่องนั้นๆ */}
-                                            <td className={`border-b border-gray-200 p-2 ${item.depression_level?.includes('รุนแรง') ? 'text-red-600 font-bold' : ''}`}>
-                                                {item.depression_score} / {item.depression_level}
-                                            </td>
-                                            <td className={`border-b border-gray-200 p-2 ${item.anxiety_level?.includes('รุนแรง') ? 'text-red-600 font-bold' : ''}`}>
-                                                {item.anxiety_score} / {item.anxiety_level}
-                                            </td>
-                                            <td className={`border-b border-gray-200 p-2 ${item.stress_level?.includes('รุนแรง') ? 'text-red-600 font-bold' : ''}`}>
-                                                {item.stress_score} / {item.stress_level}
-                                            </td>
-
-                                            <td className="border-b border-gray-200 p-2">
-                                                {item.created_at
-                                                    ? typeof item.created_at === 'string'
-                                                        ? formatThaiDate(item.created_at)
-                                                        : new Date(item.created_at).toLocaleDateString('th-TH')
-                                                    : '-'}
-                                            </td>
-                                            <td className="border-b border-gray-200 p-2">
-                                                <button
-                                                    className="text-red-500 bg-red-50 hover:bg-red-100 py-1 px-3 rounded font-bold transition-colors"
-                                                    onClick={() => handleRemove(item.id)}
-                                                >
-                                                    ลบ
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={8} className="py-8 text-center text-gray-500">
-                                            ไม่พบข้อมูลที่ตรงกับเงื่อนไข
+                                {currentData.map((item) => (
+                                    <tr key={item.user_id} className="text-center hover:bg-gray-50 transition">
+                                        <td className="border-b p-3">{item.student_id ?? '-'}</td>
+                                        <td className="border-b p-3">{item.name ?? '-'}</td>
+                                        <td className="border-b p-3">{item.phone ?? '-'}</td>
+                                        <td className="border-b p-3 font-bold text-purple-600">
+                                            {item.total}
+                                        </td>
+                                        <td className="border-b p-3">
+                                            {item.lastDate ? formatThaiDate(item.lastDate) : "-"}
+                                        </td>
+                                        <td className="border-b p-3">
+                                            <button
+                                                onClick={() =>
+                                                    router.push(`/mentalhealth/evaluations/${item.user_id}`)
+                                                }
+                                                className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-4 py-1 rounded-lg font-medium"
+                                            >
+                                                ดูประวัติ
+                                            </button>
                                         </td>
                                     </tr>
-                                )}
+                                ))}
                             </tbody>
                         </table>
                     </div>
+
+                    {/* ✅ Mobile Card Layout */}
+                    <div className="md:hidden w-full space-y-4">
+                        {currentData.map((item) => (
+                            <div key={item.user_id} className="bg-white shadow-md rounded-xl p-4">
+                                <p className="font-semibold">{item.name ?? '-'}</p>
+                                <p className="text-sm text-gray-500">{item.student_id ?? '-'}</p>
+                                <p className="text-sm text-gray-500">{item.phone ?? '-'}</p>
+
+                                <div className="flex justify-between mt-3 text-sm">
+                                    <span>จำนวนครั้ง: <b>{item.total}</b></span>
+                                    <span>
+                                        {item.lastDate ? formatThaiDate(item.lastDate) : "-"}
+                                    </span>
+                                </div>
+
+                                <button
+                                    onClick={() =>
+                                        router.push(`/mentalhealth/evaluations/${item.user_id}`)
+                                    }
+                                    className="mt-4 w-full bg-purple-100 text-purple-700 py-2 rounded-lg font-medium"
+                                >
+                                    ดูประวัติ
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex justify-center items-center mt-8 gap-4">
+                        <button
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(prev => prev - 1)}
+                            className="px-4 py-1 bg-gray-200 rounded disabled:opacity-50"
+                        >
+                            ⬅
+                        </button>
+
+                        <span className="font-semibold text-sm sm:text-base">
+                            หน้า {currentPage} / {totalPages}
+                        </span>
+
+                        <button
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            className="px-4 py-1 bg-gray-200 rounded disabled:opacity-50"
+                        >
+                            ➡
+                        </button>
+                    </div>
+
                 </div>
             )}
         </>
     );
-}
-export default MentalhealthEvaluations
+};
+
+export default MentalhealthEvaluations;

@@ -72,10 +72,12 @@ export default function MentalhealthList() {
     const monthlyAppointments = appointments.filter((a) => {
         if (!a.date) return false;
 
+        // เอาแค่ปีและเดือนมาเทียบ เพื่อกรองตามเดือนที่เลือก
         const filterKey = `${selectedDate.getFullYear()}-${String(
             selectedDate.getMonth() + 1
         ).padStart(2, "0")}`;
 
+        // ถ้ามีการเลือกวัน ให้แสดงเฉพาะวันนั้น ถ้าไม่มีก็แสดงทั้งเดือน
         const inSameMonth = a.date.startsWith(filterKey);
 
         if (selectedDay) {
@@ -268,13 +270,6 @@ export default function MentalhealthList() {
                                         onClick={() => updateStatus("CONFIRMED")}
                                     >
                                         <CheckCircle className="w-4 h-4" /> ยืนยันนัดหมาย
-                                    </button>
-
-                                    <button
-                                        className="bg-orange-500 hover:bg-orange-600 text-white py-3 sm:py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                                        onClick={() => updateStatus("PENDING")}
-                                    >
-                                        <Hourglass className="w-4 h-4" /> รอดำเนินการ
                                     </button>
 
                                     <button

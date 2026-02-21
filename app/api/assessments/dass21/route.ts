@@ -1,37 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
-import { getCache , setCache , delCache} from "@/utils/cache";
+import { getCache, setCache, delCache } from "@/utils/cache";
 
 export async function GET() {
     try {
-        const cacheKey = 'dass21:all'
-        const cached = await getCache(cacheKey)
+        const cacheKey = "dass21:all";
+        const cached = await getCache(cacheKey);
         if (cached) {
-            return NextResponse.json(cached)
+            return NextResponse.json(cached);
         }
 
-        const dass21List = await prisma.dass_21_result.findMany({
-            include:{
-                user_consent:{
-                    select:{
-                        name:true,
-                        phone:true,
-                        student_id:true
-                    }
-                }
-            }
-        })
+        // 1️⃣ นับจำนวนครั้งต่อ user
+        const grouped = await prisma.dass_21_result.groupBy({
+            by: ["user_id"],
+            _count: {
+                id: true,
+            },
+            _max: {
+                created_at: true,
+            },
+        });
 
-        await setCache(cacheKey, { dass21List }, 120)
+        // 2️⃣ ดึงข้อมูล user ทั้งหมดที่อยู่ใน grouped
+        const userIds = grouped.map(g => g.user_id).filter(Boolean);
 
-        return NextResponse.json({ dass21List })
+        const users = await prisma.user_consent.findMany({
+            where: {
+                line_user_id: {
+                    in: userIds as string[],
+                },
+            },
+            select: {
+                line_user_id: true,
+                name: true,
+                phone: true,
+                student_id: true,
+            },
+        });
+
+        // 3️⃣ รวมข้อมูลเข้าด้วยกัน
+        const result = grouped.map(g => {
+            const user = users.find(u => u.line_user_id === g.user_id);
+
+            return {
+                user_id: g.user_id,
+                name: user?.name ?? null,
+                phone: user?.phone ?? null,
+                student_id: user?.student_id ?? null,
+                total: g._count.id,
+                lastDate: g._max.created_at,
+            };
+        });
+
+        await setCache(cacheKey, { result }, 120);
+
+        return NextResponse.json({ result });
+
     } catch (error: unknown) {
         if (error instanceof Error) {
-            console.error("GET DASS21 Error : ", error.message)
+            console.error("GET DASS21 Error : ", error.message);
         } else {
-            console.error("Unknow error in GET DASS21 ! ", error)
+            console.error("Unknown error in GET DASS21!", error);
         }
-        return NextResponse.json({ message: "Sever GET DASS21 Error !" }, { status: 400 })
+        return NextResponse.json(
+            { message: "Server GET DASS21 Error!" },
+            { status: 500 }
+        );
     }
 }
 

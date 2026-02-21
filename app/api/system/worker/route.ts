@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+//ทำงานทีละ 5 records ต่อรอบ
 const BATCH_SIZE = 5;
 
 export async function POST(req: NextRequest) {
     try {
         const { jobId, records } = await req.json();
 
+        //  ตรวจสอบ payload เบื้องต้น
         if (!jobId || !records || !Array.isArray(records)) {
             return NextResponse.json(
                 { error: "Invalid payload" },
@@ -20,6 +22,7 @@ export async function POST(req: NextRequest) {
             where: { id: jobId },
         });
 
+        // ถ้าไม่มีงานนี้ หรือไม่ใช่สถานะ PENDING ให้หยุด
         if (!job || job.status !== "PENDING") {
             return NextResponse.json({ status: "ignored" });
         }
@@ -30,12 +33,15 @@ export async function POST(req: NextRequest) {
             data: { status: "PROCESSING" },
         });
 
-        //  ทำงานทีละ batch
+        //  ทำงานทีละ batch 
+        // แบ่งข้อมูลเป็นชุดละ 5 records 
         for (let i = 0; i < records.length; i += BATCH_SIZE) {
             const batch = records.slice(i, i + BATCH_SIZE);
 
+            // ทำพร้อมกัน 5 record
             await Promise.all(
                 batch.map(async (row: Record<string, string>) => {
+                    // รวมค่าทุก column เป็น string เดียว (ปรับตามความเหมาะสม)
                     const content = Object.values(row).join(" ");
 
                     // เรียก embedding API
@@ -60,6 +66,7 @@ export async function POST(req: NextRequest) {
 
                     if (!Array.isArray(embedding)) return;
 
+                    //แปลง embedding เป็น pgvector format [0.123, 0.456, 0.789]
                     const embeddingStr = `[${embedding.join(",")}]`;
 
                     //  กัน insert ซ้ำ

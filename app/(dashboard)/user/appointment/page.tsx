@@ -361,7 +361,7 @@ const UserAppointment = () => {
                         </div>
                     </div>
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-full border border-orange-100 shadow-sm">
-                        <span className="text-xs font-semibold">กรุณานัดหมายล่วงหน้าอย่างน้อย 2 ชั่วโมง</span>
+                        <span className="text-xs font-semibold">กรุณานัดหมายล่วงหน้าอย่างน้อย 1 วัน</span>
                     </div>
                 </div>
 

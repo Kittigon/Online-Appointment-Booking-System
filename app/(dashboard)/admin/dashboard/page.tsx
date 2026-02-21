@@ -47,7 +47,8 @@ export default function AdminDashboardSimple() {
             toast.error("ไม่สามารถโหลดข้อมูลได้ในขณะนี้");
         }
     }
-
+    
+    // ฟังก์ชันสำหรับแปลงเวลาที่ผ่านมาเป็นข้อความที่อ่านง่าย
     const timeAgo = (dateString : string) => {
         const now = new Date();
         const past = new Date(dateString);
