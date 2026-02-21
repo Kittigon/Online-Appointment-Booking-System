@@ -66,55 +66,102 @@ export default function DetailPage() {
     return (
         <div className="px-4 sm:px-6 py-6 max-w-5xl mx-auto">
 
-            {/* 🔙 ปุ่มกลับใหม่ */}
-            <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 mb-6 text-purple-700 hover:text-purple-900 font-medium transition"
-            >
-                <span className="bg-purple-100 hover:bg-purple-200 transition px-3 py-1 rounded-full">
-                    ←
-                </span>
-                กลับ
-            </button>
-
-            <h1 className="text-xl sm:text-2xl font-bold text-purple-700 mb-6 text-center sm:text-left">
-                ประวัติแบบประเมิน DASS-21
-            </h1>
-
-            {/* 👤 ข้อมูลผู้ใช้ */}
-            <div className="bg-white shadow rounded-xl p-4 sm:p-6 mb-8">
-                <h2 className="font-semibold text-base sm:text-lg mb-3 text-gray-700">
-                    ข้อมูลผู้ทำแบบประเมิน
-                </h2>
-                <p className="text-sm sm:text-base">ชื่อ: {user?.name ?? "-"}</p>
-                <p className="text-sm sm:text-base">รหัสนิสิต: {user?.student_id ?? "-"}</p>
-                <p className="text-sm sm:text-base">เบอร์โทร: {user?.phone ?? "-"}</p>
-            </div>
-
-            {/* 🔢 Pagination Controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            {/*  ปุ่มกลับ */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                 <button
-                    disabled={currentPage === 0}
-                    onClick={() => setCurrentPage(prev => prev - 1)}
-                    className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-300 transition"
+                    onClick={() => router.back()}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-purple-700 hover:text-purple-900 transition"
                 >
-                    ⬅ ก่อนหน้า
+                    <span className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 hover:bg-purple-200">
+                        ←
+                    </span>
+                    กลับไปหน้ารายการ
                 </button>
 
-                <span className="font-semibold text-sm sm:text-base">
-                    ครั้งที่ {data.length - currentPage} / {data.length}
+                <h1 className="text-xl sm:text-2xl font-bold text-purple-700">
+                    ประวัติแบบประเมิน DASS-21
+                </h1>
+            </div>
+
+            {/* ข้อมูลผู้ทำแบบประเมิน */}
+            <div className="bg-white rounded-2xl shadow-md p-6 mb-10">
+                <h2 className="font-semibold text-gray-700 mb-4">
+                    ข้อมูลผู้ทำแบบประเมิน
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm sm:text-base">
+                    <div>
+                        <p className="text-gray-500">ชื่อ</p>
+                        <p className="font-medium">{user?.name ?? "-"}</p>
+                    </div>
+
+                    <div>
+                        <p className="text-gray-500">รหัสนิสิต</p>
+                        <p className="font-medium">{user?.student_id ?? "-"}</p>
+                    </div>
+
+                    <div>
+                        <p className="text-gray-500">เบอร์โทร</p>
+                        <p className="font-medium">{user?.phone ?? "-"}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/*  Pagination Controls */}
+            <div className="flex items-center justify-between mb-8 bg-white rounded-xl shadow-sm px-4 py-3">
+
+                <button
+                    disabled={currentPage === 0}
+                    onClick={() => setCurrentPage(p => p - 1)}
+                    className="px-4 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 disabled:opacity-40 transition"
+                >
+                    ← ก่อนหน้า
+                </button>
+
+                <span className="text-sm font-semibold text-gray-700">
+                    ประวัติครั้งที่ {data.length - currentPage} จาก {data.length}
                 </span>
 
                 <button
                     disabled={currentPage === data.length - 1}
-                    onClick={() => setCurrentPage(prev => prev + 1)}
-                    className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-300 transition"
+                    onClick={() => setCurrentPage(p => p + 1)}
+                    className="px-4 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 disabled:opacity-40 transition"
                 >
-                    ถัดไป ➡
+                    ถัดไป →
                 </button>
+
             </div>
 
-            {/* 📊 การประเมิน */}
+            {/*  คำอธิบายระดับคะแนน */}
+            <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 mb-8">
+                <h3 className="text-sm font-semibold text-purple-700 mb-3">
+                    เกณฑ์การให้คะแนน (DASS-21)
+                </h3>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    <div className="bg-white rounded-lg px-3 py-2 shadow-sm text-center">
+                        <span className="font-bold text-purple-700">0</span>
+                        <p className="text-gray-600">ไม่เคย</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg px-3 py-2 shadow-sm text-center">
+                        <span className="font-bold text-purple-700">1</span>
+                        <p className="text-gray-600">บางครั้ง</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg px-3 py-2 shadow-sm text-center">
+                        <span className="font-bold text-purple-700">2</span>
+                        <p className="text-gray-600">บ่อยครั้ง</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg px-3 py-2 shadow-sm text-center">
+                        <span className="font-bold text-purple-700">3</span>
+                        <p className="text-gray-600">เป็นประจำ</p>
+                    </div>
+                </div>
+            </div>
+
+            {/*  การประเมิน */}
             <div
                 key={assessment.id}
                 className="bg-white shadow rounded-xl p-4 sm:p-6 mb-10"
@@ -124,62 +171,66 @@ export default function DetailPage() {
                     {new Date(assessment.created_at).toLocaleDateString("th-TH")}
                 </p>
 
-                {/* 🔢 สรุปคะแนน */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                {/*  สรุปคะแนน */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
 
-                    <div className="bg-purple-50 p-4 rounded-xl text-center">
-                        <p className="font-semibold text-sm">Depression</p>
-                        <p className="text-2xl font-bold text-purple-700">
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 text-center">
+                        <p className="text-sm font-medium text-purple-700">Depression</p>
+                        <p className="text-4xl font-bold text-purple-800 mt-2">
                             {assessment.depression_score}
                         </p>
-                        <p className="text-sm">ระดับ: {assessment.depression_level}</p>
+                        <p className="text-sm mt-1">
+                            ระดับ: {assessment.depression_level}
+                        </p>
                     </div>
 
-                    <div className="bg-blue-50 p-4 rounded-xl text-center">
-                        <p className="font-semibold text-sm">Anxiety</p>
-                        <p className="text-2xl font-bold text-blue-700">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 text-center">
+                        <p className="text-sm font-medium text-blue-700">Anxiety</p>
+                        <p className="text-4xl font-bold text-blue-800 mt-2">
                             {assessment.anxiety_score}
                         </p>
-                        <p className="text-sm">ระดับ: {assessment.anxiety_level}</p>
+                        <p className="text-sm mt-1">
+                            ระดับ: {assessment.anxiety_level}
+                        </p>
                     </div>
 
-                    <div className="bg-green-50 p-4 rounded-xl text-center">
-                        <p className="font-semibold text-sm">Stress</p>
-                        <p className="text-2xl font-bold text-green-700">
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 text-center">
+                        <p className="text-sm font-medium text-green-700">Stress</p>
+                        <p className="text-4xl font-bold text-green-800 mt-2">
                             {assessment.stress_score}
                         </p>
-                        <p className="text-sm">ระดับ: {assessment.stress_level}</p>
+                        <p className="text-sm mt-1">
+                            ระดับ: {assessment.stress_level}
+                        </p>
                     </div>
 
                 </div>
 
-                {/* 📋 คำถาม + คำตอบ */}
-                <div>
-                    <h3 className="font-semibold mb-4 text-gray-700 text-sm sm:text-base">
-                        รายละเอียดคำตอบ (21 ข้อ)
-                    </h3>
-
+                {/*  คำถาม + คำตอบ */}
+                <div className="space-y-4">
                     {assessment.dass_21_answer
-                        .sort((a: Dass21Answer, b: Dass21Answer) => a.question_number - b.question_number)
-                        .map((answer: Dass21Answer) => {
+                        .sort((a, b) => a.question_number - b.question_number)
+                        .map((answer) => {
                             const question = DASS_21[answer.question_number - 1];
+
+                            const typeStyle =
+                                question?.type === "D"
+                                    ? "bg-purple-100 text-purple-700"
+                                    : question?.type === "A"
+                                        ? "bg-blue-100 text-blue-700"
+                                        : "bg-green-100 text-green-700";
 
                             return (
                                 <div
                                     key={answer.id}
-                                    className="border-b py-4"
+                                    className="bg-gray-50 rounded-xl p-4 border border-gray-100"
                                 >
-                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                                        <p className="font-medium text-gray-800 text-sm sm:text-base sm:w-4/5">
-                                            {question?.text}
+                                    <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+                                        <p className="font-medium text-gray-800 sm:w-4/5">
+                                            {answer.question_number}. {question?.text}
                                         </p>
 
-                                        <span className={`text-xs px-2 py-1 rounded self-start ${question?.type === "D"
-                                                ? "bg-purple-100 text-purple-700"
-                                                : question?.type === "A"
-                                                    ? "bg-blue-100 text-blue-700"
-                                                    : "bg-green-100 text-green-700"
-                                            }`}>
+                                        <span className={`text-xs px-3 py-1 rounded-full ${typeStyle}`}>
                                             {question?.type === "D"
                                                 ? "Depression"
                                                 : question?.type === "A"
@@ -188,15 +239,14 @@ export default function DetailPage() {
                                         </span>
                                     </div>
 
-                                    <p className="mt-2 font-semibold text-purple-600 text-sm sm:text-base">
+                                    <div className="mt-3 text-sm font-semibold text-purple-700">
                                         คำตอบ: {scoreMap[answer.score]}
-                                    </p>
+                                    </div>
                                 </div>
                             );
                         })}
                 </div>
             </div>
-
         </div>
     );
 }

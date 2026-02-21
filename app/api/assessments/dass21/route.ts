@@ -10,7 +10,7 @@ export async function GET() {
             return NextResponse.json(cached);
         }
 
-        // 1️⃣ นับจำนวนครั้งต่อ user
+        //  นับจำนวนครั้งต่อ user
         const grouped = await prisma.dass_21_result.groupBy({
             by: ["user_id"],
             _count: {
@@ -21,7 +21,7 @@ export async function GET() {
             },
         });
 
-        // 2️⃣ ดึงข้อมูล user ทั้งหมดที่อยู่ใน grouped
+        //  ดึงข้อมูล user ทั้งหมดที่อยู่ใน grouped
         const userIds = grouped.map(g => g.user_id).filter(Boolean);
 
         const users = await prisma.user_consent.findMany({
@@ -38,7 +38,7 @@ export async function GET() {
             },
         });
 
-        // 3️⃣ รวมข้อมูลเข้าด้วยกัน
+        //  รวมข้อมูลเข้าด้วยกัน
         const result = grouped.map(g => {
             const user = users.find(u => u.line_user_id === g.user_id);
 

@@ -54,7 +54,7 @@ const MentalhealthEvaluations = () => {
 
     return (
         <>
-            <div className="bg-[#B67CDE] w-[260px] sm:w-[300px] h-10 text-white p-6 sm:p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
+            <div className="bg-[#B67CDE] w-[260px] sm:w-[300px] h-20 text-white p-6 sm:p-10 mt-7 flex items-center justify-center rounded-tr-sm rounded-br-sm">
                 <h1 className="text-lg sm:text-xl font-bold">
                     สรุปผลแบบประเมิน DASS-21
                 </h1>
@@ -73,64 +73,102 @@ const MentalhealthEvaluations = () => {
                 <div className="flex flex-col items-center mt-10 px-4 w-full">
 
                     {/* Dashboard Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-[1200px] mb-8">
-                        <div className="bg-white p-6 rounded-xl shadow-md text-center">
-                            <p className="text-gray-500 text-sm">จำนวนผู้ทำแบบประเมิน</p>
-                            <p className="text-2xl sm:text-3xl font-bold text-purple-600 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-[1200px] mb-10">
+
+                        {/* จำนวนผู้ทำแบบประเมิน */}
+                        <div className="relative bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-6 rounded-2xl shadow-lg overflow-hidden">
+                            <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full"></div>
+
+                            <p className="text-sm opacity-80">จำนวนผู้ทำแบบประเมิน</p>
+                            <p className="text-4xl font-bold mt-3 tracking-tight">
                                 {data.length}
                             </p>
-                        </div>
 
-                        <div className="bg-white p-6 rounded-xl shadow-md text-center">
-                            <p className="text-gray-500 text-sm">จำนวนครั้งทั้งหมด</p>
-                            <p className="text-2xl sm:text-3xl font-bold text-blue-600 mt-2">
-                                {totalAssessments}
+                            <p className="text-xs opacity-70 mt-2">
+                                คนที่เคยทำแบบประเมิน DASS-21
                             </p>
                         </div>
+
+                        {/* จำนวนครั้งทั้งหมด */}
+                        <div className="relative bg-gradient-to-br from-blue-500 to-cyan-600 text-white p-6 rounded-2xl shadow-lg overflow-hidden">
+                            <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full"></div>
+
+                            <p className="text-sm opacity-80">จำนวนครั้งทั้งหมด</p>
+                            <p className="text-4xl font-bold mt-3 tracking-tight">
+                                {totalAssessments}
+                            </p>
+
+                            <p className="text-xs opacity-70 mt-2">
+                                รวมทุกครั้งที่มีการทำแบบประเมิน
+                            </p>
+                        </div>
+
                     </div>
 
-                    {/* ✅ Desktop Table */}
-                    <div className="hidden md:block bg-white w-full max-w-[1200px] rounded-xl shadow-lg p-6 overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="text-gray-700 text-center">
-                                    <th className="border-b p-3">รหัสนักศึกษา</th>
-                                    <th className="border-b p-3">ชื่อ</th>
-                                    <th className="border-b p-3">เบอร์โทร</th>
-                                    <th className="border-b p-3">จำนวนครั้ง</th>
-                                    <th className="border-b p-3">ครั้งล่าสุด</th>
-                                    <th className="border-b p-3">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {currentData.map((item) => (
-                                    <tr key={item.user_id} className="text-center hover:bg-gray-50 transition">
-                                        <td className="border-b p-3">{item.student_id ?? '-'}</td>
-                                        <td className="border-b p-3">{item.name ?? '-'}</td>
-                                        <td className="border-b p-3">{item.phone ?? '-'}</td>
-                                        <td className="border-b p-3 font-bold text-purple-600">
-                                            {item.total}
-                                        </td>
-                                        <td className="border-b p-3">
-                                            {item.lastDate ? formatThaiDate(item.lastDate) : "-"}
-                                        </td>
-                                        <td className="border-b p-3">
-                                            <button
-                                                onClick={() =>
-                                                    router.push(`/mentalhealth/evaluations/${item.user_id}`)
-                                                }
-                                                className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-4 py-1 rounded-lg font-medium"
-                                            >
-                                                ดูประวัติ
-                                            </button>
-                                        </td>
+                    {/*  Desktop Table */}
+                    <div className="hidden md:block bg-white w-full max-w-[1200px] rounded-2xl shadow-xl overflow-hidden">
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+
+                                <thead className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-6 py-4">รหัสนักศึกษา</th>
+                                        <th className="px-6 py-4">ชื่อ</th>
+                                        <th className="px-6 py-4">เบอร์โทร</th>
+                                        <th className="px-6 py-4 text-center">จำนวนครั้ง</th>
+                                        <th className="px-6 py-4 text-center">ครั้งล่าสุด</th>
+                                        <th className="px-6 py-4 text-center">จัดการ</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+
+                                <tbody className="divide-y divide-gray-100">
+                                    {currentData.map((item) => (
+                                        <tr
+                                            key={item.user_id}
+                                            className="hover:bg-purple-50/60 transition duration-200"
+                                        >
+                                            <td className="px-6 py-4 text-gray-700">
+                                                {item.student_id ?? "-"}
+                                            </td>
+
+                                            <td className="px-6 py-4 font-medium text-gray-900">
+                                                {item.name ?? "-"}
+                                            </td>
+
+                                            <td className="px-6 py-4 text-gray-600">
+                                                {item.phone ?? "-"}
+                                            </td>
+
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="px-3 py-1 text-sm font-semibold rounded-full bg-purple-100 text-purple-700">
+                                                    {item.total}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-6 py-4 text-center text-gray-600">
+                                                {item.lastDate ? formatThaiDate(item.lastDate) : "-"}
+                                            </td>
+
+                                            <td className="px-6 py-4 text-center">
+                                                <button
+                                                    onClick={() =>
+                                                        router.push(`/mentalhealth/evaluations/${item.user_id}`)
+                                                    }
+                                                    className="px-4 py-2 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition shadow-sm hover:shadow-md"
+                                                >
+                                                    ดูประวัติ
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+
+                            </table>
+                        </div>
                     </div>
 
-                    {/* ✅ Mobile Card Layout */}
+                    {/*  Mobile Card Layout */}
                     <div className="md:hidden w-full space-y-4">
                         {currentData.map((item) => (
                             <div key={item.user_id} className="bg-white shadow-md rounded-xl p-4">
