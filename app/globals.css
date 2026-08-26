@@ -8,3 +8,9 @@
 * {
     font-family: "Kanit", sans-serif;
 }
+
+/* ซ่อนปุ่มดวงตาที่เป็นค่าเริ่มต้นของ Microsoft Edge (และ IE เดิม) เพื่อไม่ให้ซ้อนกับปุ่มที่เราสร้างเอง */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}

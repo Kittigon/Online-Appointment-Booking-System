@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react'
 import Link from "next/link"
-import { UserPlus } from "lucide-react";
+import { UserPlus, Eye, EyeOff } from "lucide-react";
 import { registerSchema } from '@/schemas/register';
 import toast from 'react-hot-toast'
 
@@ -9,6 +9,7 @@ const RegisterPage = () => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
 
     const messages = [
         "ยินดีต้อนรับสู่พื้นที่ปลอดภัย 💜",
@@ -122,13 +123,22 @@ const RegisterPage = () => {
 
                             <div>
                                 <label className="block text-gray-700">รหัสผ่าน</label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    placeholder='ป้อนรหัสผ่านของคุณ'
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        placeholder='ป้อนรหัสผ่านของคุณ'
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-500 hover:text-purple-500"
+                                    >
+                                        {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Error Messages */}

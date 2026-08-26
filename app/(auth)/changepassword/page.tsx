@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { changePasswordSchema } from '@/schemas/changePassword';
+import { Eye, EyeOff } from 'lucide-react';
 
 type User = {
     id: number;
@@ -15,6 +16,9 @@ export default function ChangePasswordPage() {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<User | null>(null);
 
@@ -142,36 +146,63 @@ export default function ChangePasswordPage() {
                                 <label className="block text-sm font-medium text-gray-700">
                                     รหัสผ่านเดิม
                                 </label>
-                                <input
-                                    type="password"
-                                    value={currentPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
-                                    className="mt-1 p-2 block w-full rounded-xl border-gray-300 shadow-sm"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showCurrentPassword ? "text" : "password"}
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        className="mt-1 p-2 block w-full rounded-xl border-gray-300 shadow-sm pr-10 border"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-500 hover:text-purple-500"
+                                    >
+                                        {showCurrentPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">
                                     รหัสผ่านใหม่
                                 </label>
-                                <input
-                                    type="password"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    className="mt-1 p-2 block w-full rounded-xl border-gray-300 shadow-sm"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showNewPassword ? "text" : "password"}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="mt-1 p-2 block w-full rounded-xl border-gray-300 shadow-sm pr-10 border"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-500 hover:text-purple-500"
+                                    >
+                                        {showNewPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">
                                     ยืนยันรหัสผ่านใหม่
                                 </label>
-                                <input
-                                    type="password"
-                                    value={confirmNewPassword}
-                                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                                    className="mt-1 p-2 block w-full rounded-xl border-gray-300 shadow-sm"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmNewPassword ? "text" : "password"}
+                                        value={confirmNewPassword}
+                                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                        className="mt-1 p-2 block w-full rounded-xl border-gray-300 shadow-sm pr-10 border"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-500 hover:text-purple-500"
+                                    >
+                                        {showConfirmNewPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
 
                             {error && (

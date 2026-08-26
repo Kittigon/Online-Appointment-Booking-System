@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { UserRound } from 'lucide-react'
+import { UserRound, Eye, EyeOff } from 'lucide-react'
 import { loginSchema } from '@/schemas/login'
 import toast from 'react-hot-toast'
 
@@ -15,6 +15,7 @@ type User = {
 const LoginPage = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const messages = [
         "วันนี้คุณรู้สึกยังไงบ้าง?",
         "เราพร้อมสนับสนุนคุณเสมอ 💜",
@@ -183,13 +184,22 @@ const LoginPage = () => {
 
                             <div>
                                 <label className="block text-gray-700">รหัสผ่าน</label>
-                                <input
-                                    placeholder='ป้อนรหัสผ่านของคุณ'
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
-                                />
+                                <div className="relative">
+                                    <input
+                                        placeholder='ป้อนรหัสผ่านของคุณ'
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-500 hover:text-purple-500"
+                                    >
+                                        {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* ปุ่มมีไอคอน 👤 */}
